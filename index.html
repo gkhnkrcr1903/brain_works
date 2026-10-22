@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Zeka Uyananlar</title>
+<title>Zekaya Uyananlar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
@@ -24,7 +24,10 @@
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Baloo 2",system-ui,sans-serif;font-size:17px;line-height:1.45}
-header{text-align:center;padding:24px 16px 8px}
+header{text-align:center;padding:24px 16px 8px;position:relative}
+.langbtn{position:absolute;top:12px;right:14px;font:inherit;font-weight:700;font-size:14px;background:var(--card);color:var(--ink);border:3px solid var(--line);border-radius:999px;padding:3px 12px;cursor:pointer;box-shadow:3px 3px 0 var(--line)}
+.langbtn:hover{transform:translateY(-2px)}
+@media (max-width:520px){.langbtn{position:static;margin-top:8px}}
 h1{margin:0;font-size:clamp(30px,6vw,46px);font-weight:800}
 h1 span{display:inline-block;animation:wig 2.4s ease-in-out infinite}
 .sub{color:var(--muted);margin:2px 0 0}
@@ -608,7 +611,7 @@ svg.chart{width:100%;height:auto;background:var(--soft);border-radius:10px;displ
 </head>
 <body>
 <header>
-  <h1><span>🧠</span> Zeka Uyananlar <span>💡</span></h1>
+  <h1><span>🧠</span> Zekaya Uyananlar <span>💡</span></h1>
   <p class="sub">Oynayarak çöz: nehir geçişleri, teraziler, kum saatleri ve akıl karıştıran paradokslar</p>
   <div class="score" id="score">Puan: 0 / 30</div>
 </header>
@@ -647,19 +650,25 @@ svg.chart{width:100%;height:auto;background:var(--soft);border-radius:10px;displ
   </div>
   <div class="mfoot"><button class="btn alt" id="msol">📖 Çözümü gör</button><button class="btn alt" id="mclose">Kapat</button></div>
 </div></div>
-<script src="models.js?v=27"></script>
-<script src="games.js?v=27"></script>
-<script src="games2.js?v=27"></script>
-<script src="data.js?v=27"></script>
-<script src="data2.js?v=27"></script>
-<script src="quantum.js?v=27"></script>
-<script src="quantum2.js?v=27"></script>
-<script src="quantum3.js?v=27"></script>
-<script src="logic.js?v=27"></script>
-<script src="mystery.js?v=27"></script>
-<script src="mystery2.js?v=27"></script>
-<script src="mystery3.js?v=27"></script>
-<script src="intro.js?v=27"></script>
+<script src="i18n.js?v=31"></script>
+<script src="models.js?v=31"></script>
+<script src="games.js?v=31"></script>
+<script src="games2.js?v=31"></script>
+<script src="data.js?v=31"></script>
+<script src="data2.js?v=31"></script>
+<script src="quantum.js?v=31"></script>
+<script src="quantum2.js?v=31"></script>
+<script src="quantum3.js?v=31"></script>
+<script src="logic.js?v=31"></script>
+<script src="mystery.js?v=31"></script>
+<script src="mystery2.js?v=31"></script>
+<script src="mystery3.js?v=31"></script>
+<script src="intro.js?v=31"></script>
+<script src="en_puzzles.js?v=31"></script>
+<script src="en_paradox.js?v=31"></script>
+<script src="en_stories.js?v=31"></script>
+<script src="en_quantum.js?v=31"></script>
+<script src="en_apply.js?v=31"></script>
 <script>
 /* ================= SAHNELER ================= */
 const K="#2b2135";

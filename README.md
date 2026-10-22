@@ -1,4 +1,4 @@
-# 🧠 Zeka Uyananlar
+# 🧠 Zekaya Uyananlar
 
 Oynayarak öğrenilen, animasyonlu ve hikâyeli bir zekâ, mantık ve bilim uygulaması. Tamamen tarayıcıda çalışır; hiçbir kurulum veya kütüphane gerektirmez.
 
@@ -15,6 +15,8 @@ Oynayarak öğrenilen, animasyonlu ve hikâyeli bir zekâ, mantık ve bilim uygu
 | 📖 **Çözümler** | Her soru için adım adım çözüm, "neden işe yarıyor", tarihçe ve ilginç bilgiler |
 
 İlerleme (puanlar) tarayıcının yerel hafızasında saklanır.
+
+**Dil desteği:** Türkçe ve İngilizce. Sağ üstteki düğmeyle geçiş yapılır; doğrudan bağlantı için adrese `?lang=en` ya da `?lang=tr` eklenebilir.
 
 ## Çalıştırma
 
@@ -38,6 +40,9 @@ Ardından tarayıcıda `http://localhost:8765` adresine gidin.
 | `mystery.js`, `mystery2.js`, `mystery3.js` | Katil Kim? vakaları, sahneleri ve sinematik anlatım |
 | `quantum.js`, `quantum2.js`, `quantum3.js` | Kuantum Okulu dersleri ve canvas simülasyonları |
 | `intro.js` | Bölüm giriş kartları |
+| `i18n.js` | Dil seçimi ve oyun içi metinlerin anlık İngilizce çevirisi |
+| `en_puzzles.js`, `en_paradox.js`, `en_stories.js`, `en_quantum.js` | İçeriğin İngilizce karşılıkları |
+| `en_apply.js` | İngilizce seçiliyken içeriği çevirilerle değiştirir |
 
 ## Not
 

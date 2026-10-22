@@ -86,18 +86,20 @@ CASES.push(
   twist:"'Ölüm mesajı' (dying message), özellikle Japon polisiye edebiyatında ve Ellery Queen romanlarında çok sevilen bir bulmaca türüdür. Kurban son anda katilin adını doğrudan yazamaz (katil silebilir!) ve şifreli bir ipucu bırakır. Ders: bir ipucunu, onu bırakan kişinin gözünden okumaya çalış!"}
 );
 CASES.forEach(c=>{if(!c.clm)c.clm={}});
+// ipucu çizimleri sıra numarasına bağlanır (çeviride başlıklar değişse de korunur)
+CASES.forEach(c=>c.clueM=c.clues.map(([ic,t])=>c.clm[t]||CLM[t]));
 
 // Şüpheli kartları (sabıka fotoğrafı + isim plakası) ve kırmızı iplikli pano ile yeniden çiz
 window.renderCases=function(){
   const box=document.getElementById("caseList");box.innerHTML="";
   CASES.forEach((p,i)=>{const id="k"+i,d=document.createElement("details");d.className="sol top case";
-    const clueArt=(t,ic)=>{const m=p.clm[t]||CLM[t];return m&&MODELS.includes(m)?ico(m,46):`<span class="cem">${ic}</span>`};
+    const clueArt=(k,ic)=>{const m=p.clueM&&p.clueM[k];return m&&MODELS.includes(m)?ico(m,46):`<span class="cem">${ic}</span>`};
     d.innerHTML=`<summary><span class="rank">🕵️</span> Dosya ${i+1}: ${p.t} <span class="lvl ${p.lv[0]}">${p.lv[1]}</span>${i>=6?'<span class="new">YENİ</span>':""}<span class="done"></span></summary>
       <div class="in"><div class="sp"></div>
       <h4 class="ch">🧑‍🤝‍🧑 Şüpheliler <small>(ifadeleri dikkatle oku)</small></h4>
       <div class="suspects">${p.suspects.map((s,k)=>`<div class="sus" data-k="${k}"><div class="mug"><div class="hgt">${[190,180,170,160,150].map(h=>`<i><b>${h}</b></i>`).join("")}</div>${ico(s.m,92)}<div class="flashb"></div></div><div class="plate">DOSYA ${i+1}-${k+1} · ${s.n.split(" (")[0].toUpperCase()}</div><p>“${s.says}”</p><button class="btn hot acc" data-k="${k}">👉 Suçla</button></div>`).join("")}</div>
       <h4 class="ch">📌 İpucu panosu <small>(kartlara tıkla, ipuçlarını çevir)</small></h4>
-      <div class="board2"><svg class="strings"></svg>${p.clues.map(([ic,tt,dd],k)=>`<button class="clue" style="--r:${(k%2?2:-2)+(k%3)-1}deg"><span class="front">${clueArt(tt,ic)}<b>${tt}</b><small>çevirmek için tıkla</small></span><span class="back"><b>${tt}</b>${dd}</span></button>`).join("")}</div>
+      <div class="board2"><svg class="strings"></svg>${p.clues.map(([ic,tt,dd],k)=>`<button class="clue" style="--r:${(k%2?2:-2)+(k%3)-1}deg"><span class="front">${clueArt(k,ic)}<b>${tt}</b><small>çevirmek için tıkla</small></span><span class="back"><b>${tt}</b>${dd}</span></button>`).join("")}</div>
       <div class="msg cfb"></div>
       <div class="cexp" hidden><div class="stamp">DAVA KAPANDI</div>
         <div class="box"><h4>🔎 Dedektifin akıl yürütmesi</h4><ol>${p.exp.map(x=>`<li>${x}</li>`).join("")}</ol></div>
