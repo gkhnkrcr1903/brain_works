@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zeka Uyananlar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fdf6e3; --card:#ffffff; --ink:#2b2135; --muted:#6b6275; --line:#2b2135;
+  --accent:#ff7a59; --accent2:#2f9e96; --ok:#2e9d5b; --bad:#d64545; --chip:#ffe9a8;
+  --soft:#f4ecdc; --wood:#a8673a;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1d1824; --card:#2a2333; --ink:#f4eefc; --muted:#b5abc2; --line:#f4eefc;
+    --accent:#ff8f72; --accent2:#3fa9a1; --ok:#3fae6d; --bad:#e05555; --chip:#5a4a20; --soft:#352c40; --wood:#8a5530;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1d1824; --card:#2a2333; --ink:#f4eefc; --muted:#b5abc2; --line:#f4eefc;
+  --accent:#ff8f72; --accent2:#3fa9a1; --ok:#3fae6d; --bad:#e05555; --chip:#5a4a20; --soft:#352c40; --wood:#8a5530;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Baloo 2",system-ui,sans-serif;font-size:17px;line-height:1.45}
+header{text-align:center;padding:24px 16px 8px}
+h1{margin:0;font-size:clamp(30px,6vw,46px);font-weight:800}
+h1 span{display:inline-block;animation:wig 2.4s ease-in-out infinite}
+.sub{color:var(--muted);margin:2px 0 0}
+.score{display:inline-block;margin-top:8px;background:var(--chip);border:2px solid var(--line);border-radius:999px;padding:2px 14px;font-weight:700}
+nav{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:12px 16px;position:sticky;top:0;background:var(--bg);z-index:5}
+nav button{font:inherit;font-weight:700;color:var(--ink);background:var(--card);border:3px solid var(--line);border-radius:14px;padding:6px 16px;cursor:pointer;box-shadow:3px 3px 0 var(--line)}
+nav button[aria-selected="true"]{background:var(--accent);color:#fff}
+main{max-width:1060px;margin:0 auto;padding:8px 16px 48px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.card{background:var(--card);border:3px solid var(--line);border-radius:20px;box-shadow:5px 5px 0 var(--line);overflow:hidden;display:flex;flex-direction:column;transition:transform .15s}
+.card:hover{transform:translateY(-3px) rotate(-.4deg)}
+.scene{display:block;width:100%;height:auto;border-bottom:3px solid var(--line);cursor:pointer}
+.body{padding:12px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.meta{display:flex;justify-content:space-between;align-items:center;font-size:14px;gap:6px}
+.lvl{border:2px solid var(--line);border-radius:999px;padding:0 10px;font-weight:700;font-size:14px}
+.l1{background:#c9f2c2;color:#1d3b17}.l2{background:#ffe9a8;color:#4a3800}.l3{background:#ffc9a8;color:#4a2100}.l4{background:#ffb3c1;color:#4a0016}
+.new{background:var(--accent2);color:#fff;border-radius:999px;padding:0 8px;font-weight:700;font-size:13px}
+.card h3{margin:0;font-size:21px;line-height:1.2}
+.q{margin:0}
+.cbtns{display:flex;gap:8px;margin-top:auto;flex-wrap:wrap}
+.btn{font:inherit;font-weight:700;background:var(--accent2);color:#fff;border:3px solid var(--line);border-radius:12px;padding:4px 14px;cursor:pointer;box-shadow:3px 3px 0 var(--line);transition:transform .1s}
+.btn:hover:not(:disabled){transform:translateY(-2px)}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+.btn.alt{background:var(--card);color:var(--ink)}
+.btn.hot{background:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.sel{background:var(--chip);color:var(--ink)}
+.opts{display:grid;gap:6px}
+.opts button{font:inherit;text-align:left;color:var(--ink);background:transparent;border:2px dashed var(--line);border-radius:12px;padding:5px 12px;cursor:pointer}
+.opts button:hover:not(:disabled){background:var(--chip)}
+.opts button.right{background:var(--ok);color:#fff;border-style:solid;animation:pop .4s}
+.opts button.wrong{background:var(--bad);color:#fff;border-style:solid;animation:shake .4s}
+.opts button.sel{background:var(--chip);border-style:solid}
+h2{font-size:26px;margin:22px 0 10px}
+.hint{color:var(--muted);margin:4px 0}
+/* Çözümler */
+.sol{background:var(--card);border:3px solid var(--line);border-radius:16px;margin-bottom:14px;box-shadow:4px 4px 0 var(--line);overflow:hidden}
+.sol summary{cursor:pointer;padding:10px 16px;font-weight:700;font-size:19px;list-style:none;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sol summary::before{content:"▶";display:inline-block;transition:transform .2s}
+.sol[open] summary::before{transform:rotate(90deg)}
+.sol .in{padding:0 18px 16px}
+.solhead{display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:16px;align-items:start}
+.solhead .scene{border:3px solid var(--line);border-radius:12px}
+@media (max-width:640px){.solhead{grid-template-columns:1fr}}
+.sol ol{padding-left:22px;margin:6px 0}
+.sol li{margin-bottom:4px}
+.box{border:2px solid var(--line);border-radius:12px;padding:8px 12px;margin-top:10px}
+.box h4{margin:0 0 4px;font-size:17px}
+.box p{margin:0}
+.box.why{background:color-mix(in srgb,var(--accent2) 14%,var(--card))}
+.box.hist{background:color-mix(in srgb,#e9c46a 22%,var(--card))}
+.box.note{background:color-mix(in srgb,var(--accent) 12%,var(--card))}
+.ans{display:inline-block;background:var(--chip);border:2px solid var(--line);border-radius:10px;padding:0 10px;font-weight:700}
+.flash{animation:flash 1.4s}
+/* Modal */
+.ov{position:fixed;inset:0;background:rgba(20,10,30,.6);z-index:20;display:flex;align-items:flex-start;justify-content:center;padding:20px 10px;overflow-y:auto}
+.ov[hidden]{display:none}
+.modal{background:var(--card);border:3px solid var(--line);border-radius:22px;box-shadow:6px 6px 0 var(--line);width:100%;max-width:780px;padding:16px;position:relative;animation:popin .3s}
+.modal h2{margin:0 40px 4px 0}
+.x{position:absolute;right:12px;top:10px;font:inherit;font-size:22px;background:var(--chip);border:2px solid var(--line);border-radius:50%;width:38px;height:38px;cursor:pointer;color:var(--ink);z-index:2}
+.msg{min-height:1.6em;font-weight:700;margin:8px 0;padding:4px 10px;border-radius:10px}
+.msg:empty{padding:0}
+.msg.ok{background:var(--ok);color:#fff;animation:pop .4s}.msg.bad{background:var(--bad);color:#fff;animation:shake .4s}.msg.info{background:var(--chip)}
+.mfoot{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;border-top:2px dashed var(--line);padding-top:10px}
+/* Giriş animasyonu */
+.intro .scene{border:3px solid var(--line);border-radius:16px;animation:zoomin 1.2s ease-out}
+.narr{min-height:5.2em;font-size:19px;margin:12px 4px;font-weight:600}
+.narr p{margin:0 0 4px;animation:fadeup .5s}
+.narr .cur::after{content:"▌";animation:blink 1s steps(1) infinite;color:var(--accent)}
+.introbtns{display:flex;gap:8px;flex-wrap:wrap}
+.chapter{display:inline-block;font-size:13px;font-weight:800;letter-spacing:1px;color:var(--accent);text-transform:uppercase}
+.ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.log{font-size:14px;color:var(--muted);margin-top:6px;white-space:pre-wrap;max-height:9em;overflow:auto}
+.stage{position:relative;border:3px solid var(--line);border-radius:14px;overflow:hidden}
+.conf{position:fixed;top:-40px;font-size:28px;z-index:40;pointer-events:none;animation:fall 2.2s ease-in forwards}
+.ico{display:block;overflow:visible}
+.ico.flip{transform:scaleX(-1)}
+/* Modellerin içindeki canlılık */
+.eye{transform-box:fill-box;transform-origin:center;animation:blinkEye 4.5s infinite}
+.hand{transform-box:view-box;transform-origin:50px 56px;animation:spin 4s linear infinite}
+.fl,.rays{animation:blink 1.2s steps(2) infinite}
+.steam{animation:steam 2s ease-in-out infinite}
+.fire{transform-box:fill-box;transform-origin:center top;animation:pulse .3s infinite}
+.stream{animation:dash 1s linear infinite}
+/* Nehir */
+.river{position:relative;height:230px;border:3px solid var(--line);border-radius:14px;overflow:hidden;background:linear-gradient(#8fd3ff,#d6f0ff 30%,transparent 30%)}
+.river.night{background:linear-gradient(#0f1a35,#2c3e63 30%,transparent 30%)}
+.river .moon{display:none}
+.river.night .moon{display:block;position:absolute;right:12%;top:12px;width:30px;height:30px;border-radius:50%;background:#fff6c2;box-shadow:0 0 20px #fff6c2}
+.bank{position:absolute;top:30%;bottom:0;width:29%;background:linear-gradient(#8bd36b,#5aa340);display:flex;flex-wrap:wrap;align-content:center;justify-content:center;gap:0 2px;padding:4px;z-index:1}
+.bank.L{left:0;border-right:3px solid #2b2135;border-radius:0 30px 0 0}.bank.R{right:0;border-left:3px solid #2b2135;border-radius:30px 0 0 0}
+.night .bank{background:linear-gradient(#4a5a3a,#33402a)}
+.water{position:absolute;top:30%;bottom:0;left:27%;right:27%;background:linear-gradient(#5aa9e6,#2f6fa8);overflow:hidden}
+.night .water{background:linear-gradient(#1c3550,#0f2238)}
+.water::before,.water::after{content:"";position:absolute;left:0;width:200%;height:6px;background:repeating-linear-gradient(90deg,transparent 0 18px,rgba(255,255,255,.4) 18px 30px);animation:flow 2.4s linear infinite}
+.water::before{top:30%}.water::after{top:72%;animation-duration:3.4s}
+.planks{position:absolute;left:0;right:0;top:40%;height:18px;background:repeating-linear-gradient(90deg,#a8673a 0 14px,#2b2135 14px 16px);border-top:3px solid #2b2135;border-bottom:3px solid #2b2135}
+.planks::before{content:"";position:absolute;left:0;right:0;top:-30px;height:2px;background:#c58b4a;box-shadow:0 -1px #2b2135}
+.boat{position:absolute;top:31%;width:18%;transition:left 1.2s ease-in-out;display:flex;flex-direction:column;align-items:center;z-index:2;animation:bob 1.8s ease-in-out infinite}
+.boat .seats{display:flex;justify-content:center;min-height:60px;align-items:flex-end;position:relative;z-index:1}
+.boat .hull{width:100%;height:auto;margin-top:-62%;position:relative;z-index:2;pointer-events:none}
+.boat.torch{top:24%}
+.boat.torch .seats{margin-bottom:-14px}
+.boat.torch .lantn{filter:drop-shadow(0 0 10px #fff6a8)}
+.boat.moving{animation:rock .5s ease-in-out infinite}
+.tok{background:none;border:none;cursor:pointer;padding:0 1px;line-height:1;position:relative;display:inline-flex;flex-direction:column;align-items:center;color:var(--ink);font-family:inherit;transition:transform .15s}
+.tok small{font-size:11px;font-weight:700;background:#fff;color:#2b2135;border:1px solid #2b2135;border-radius:6px;padding:0 3px;margin-top:-4px;position:relative}
+.tok:hover{transform:translateY(-4px) scale(1.08)}
+/* Kovalar / kum saati */
+.stage.lab{background:linear-gradient(#f3d9a4 70%,#a8673a 70%)}
+.tap{position:absolute;top:4px;left:50%;font-size:30px;transform:translateX(-50%)}
+.jugs{display:flex;gap:30px;justify-content:center;align-items:flex-end;padding:30px 14px 14px;flex-wrap:wrap}
+.jug{display:flex;flex-direction:column;align-items:center;gap:6px}
+.jbox{position:relative;width:84px;border:4px solid #2b2135;border-top:none;border-radius:0 0 18px 18px;overflow:hidden;background:rgba(255,255,255,.55)}
+.jbox.slosh{animation:slosh .5s}
+.jfill{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(#7cc7ff,#2f6fa8);transition:height .8s ease}
+.jlab{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;z-index:1;color:#2b2135;text-shadow:0 0 4px #fff}
+.ticks i{position:absolute;right:0;width:12px;height:2px;background:#2b2135;opacity:.4}
+.jug b{color:#2b2135}
+.hg{display:flex;flex-direction:column;align-items:center;transition:transform .7s cubic-bezier(.5,1.5,.5,1)}
+.hg .cap{width:86px;height:10px;background:#a8673a;border:3px solid #2b2135;border-radius:4px}
+.hg .h{width:70px;height:58px;border:3px solid #2b2135;position:relative;overflow:hidden;background:#e6f3ff}
+.hg .h.t{border-radius:4px 4px 40px 40px}.hg .h.b{border-radius:40px 40px 4px 4px}
+.hg .sand{position:absolute;left:0;right:0;bottom:0;background:#e9b44c;transition:height 1.2s linear}
+.hg .neck{width:6px;height:8px;background:#e6f3ff;border-left:3px solid #2b2135;border-right:3px solid #2b2135}
+.hg.run .neck{background:#e9b44c}
+.stage.kitchen{background:linear-gradient(#ffe7c7 72%,#c4a27a 72%)}
+.kitchen .clock,.kitchen b{color:#2b2135}
+.potw.boil .steam{animation-duration:.8s}
+.clock{font-size:30px;font-weight:800;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px}
+/* Terazi */
+.scale{position:relative;height:230px;background:linear-gradient(#e7dcff 85%,#c6b2f0 85%)}
+.post{position:absolute;left:50%;top:56px;width:16px;margin-left:-8px;bottom:22px;background:linear-gradient(90deg,#c9884a,#8b5a2b);border:3px solid #2b2135;border-radius:4px}
+.post::after{content:"";position:absolute;bottom:-6px;left:-40px;right:-40px;height:14px;background:#a8673a;border:3px solid #2b2135;border-radius:8px}
+.pivot{position:absolute;left:50%;top:44px;width:24px;height:24px;margin-left:-12px;border-radius:50%;background:#ffd34d;border:3px solid #2b2135;z-index:2}
+.beam{position:absolute;left:50%;top:52px;width:310px;margin-left:-155px;height:12px;background:linear-gradient(#e0a060,#a8673a);border:3px solid #2b2135;border-radius:6px;transition:transform .9s cubic-bezier(.5,1.6,.5,1)}
+.pan{position:absolute;top:64px;width:134px;min-height:62px;border:3px solid #2b2135;border-top:none;border-radius:0 0 64px 64px;background:linear-gradient(#ffe48a,#e9b44c);display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-end;padding:4px 4px 8px;transition:transform .9s cubic-bezier(.5,1.6,.5,1)}
+.pan i{position:absolute;top:-12px;left:6px;right:6px;height:12px;border-left:2px solid #2b2135;border-right:2px solid #2b2135}
+.pan.L{left:calc(50% - 163px)}.pan.R{left:calc(50% + 29px)}
+.ball{--h:210;width:34px;height:34px;border-radius:50%;border:3px solid #2b2135;background:radial-gradient(circle at 32% 28%,#fff 0 12%,hsl(var(--h) 80% 70%) 30%,hsl(var(--h) 70% 42%));font:inherit;font-weight:800;font-size:13px;cursor:pointer;color:#102040;margin:1px;text-shadow:0 0 3px #fff}
+.ball.pick{outline:4px dashed var(--accent);outline-offset:2px}
+.table{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;padding:8px;border:3px solid var(--line);border-top:none;border-radius:0 0 14px 14px;background:repeating-linear-gradient(90deg,#a8673a 0 40px,#9c5f33 40px 80px);min-height:48px}
+/* İpler */
+.stage.dark{background:#2a2036;color:#fff;padding:10px}
+.rope{display:flex;align-items:center;gap:8px;margin:12px 0}
+.rbar{flex:1;height:24px;border-radius:12px;background:rgba(255,255,255,.08);position:relative}
+.rfill{position:absolute;top:2px;bottom:2px;border:2px solid #2b2135;border-radius:10px;background:repeating-linear-gradient(60deg,#d9a066 0 8px,#9c6630 8px 14px);transition:left 1.2s linear,right 1.2s linear}
+.fl{position:absolute;top:-22px;transition:left 1.2s linear}
+/* Kapılar */
+.doorsc{display:flex;justify-content:space-around;align-items:flex-end;padding:40px 8px 10px;background:linear-gradient(#6b5a7a 80%,#4a3d56 80%);min-height:200px}
+.doorsc.studio{background:radial-gradient(circle at 50% 0,#ffe48a33,transparent 60%),linear-gradient(#3c2a55 80%,#2a1c3c 80%)}
+.doorsc.felt{background:radial-gradient(#2f7a45,#1d4a2a)}
+.guard{position:relative}
+.guard.talk{animation:bob .6s infinite}
+.bub{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#fff;color:#222;border:2px solid #222;border-radius:12px;padding:2px 8px;font-size:14px;white-space:nowrap;font-weight:700;animation:popin .3s}
+.bub:empty{display:none}
+.door{text-align:center;transition:transform .6s;position:relative}
+.door b{display:block;font-size:14px;color:#fff}
+.door.open{animation:dooropen .7s}
+.door.mine{filter:drop-shadow(0 0 10px #ffd34d)}
+.hostw{align-self:flex-end}
+.fly{animation:float 1.5s ease-in-out infinite}.roar{animation:shake .4s 4}
+.step{font-weight:700;margin:10px 0 2px}
+/* Şişeler */
+.btab{border-collapse:collapse;margin:8px auto}
+.btab td,.btab th{border:2px solid var(--line);width:42px;height:42px;text-align:center;cursor:pointer;padding:0}
+.btab td .ico,.btab th .ico{margin:auto}
+.btab th{cursor:default;background:var(--chip);font-size:14px}
+.btab td:hover{background:var(--chip)}
+.btab th.btl{cursor:pointer}
+.dead .ico{transform:rotate(90deg);filter:grayscale(1);transition:transform .6s}
+/* Kule */
+.tower{position:relative;height:320px;background:linear-gradient(#8fd3ff,#d6f0ff 82%,#8bd36b 82%)}
+.tw-wall{position:absolute;left:-10px;bottom:6px;opacity:.95}
+.floor{position:absolute;display:flex;gap:2px;flex-wrap:wrap;width:44%;align-items:flex-end;padding:4px;border-radius:10px}
+.floor em{width:100%;font-size:12px;font-weight:800;color:#2b2135;font-style:normal}
+.floor.top{left:12px;top:4px;background:rgba(255,255,255,.65)}.floor.bot{left:12px;bottom:4px;background:rgba(255,255,255,.4)}
+.pulley{position:absolute;left:calc(68% - 4px);top:2px;font-size:30px;animation:spin 3s linear infinite}
+.basket{position:absolute;width:112px;min-height:54px;background:repeating-linear-gradient(45deg,#c9884a 0 6px,#a8673a 6px 12px);border:3px solid #2b2135;border-radius:0 0 20px 20px;display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;transition:top 1.1s ease-in-out}
+.basket.a{left:calc(68% - 100px)}.basket.b{left:calc(68% + 30px)}
+.ropes{position:absolute;left:calc(68% - 46px);width:134px;top:24px;bottom:40px;border-left:2px solid #2b2135;border-right:2px solid #2b2135}
+.kg{font-size:12px;font-weight:800;text-align:center;width:100%;color:#fff;text-shadow:0 0 3px #000}
+/* Anahtarlar */
+.stage.hall{background:linear-gradient(#ffe7c7 75%,#e5b98a 75%);padding:10px;color:#2b2135;display:flex;align-items:center;justify-content:space-around;flex-wrap:wrap}
+.closed{text-align:center}
+.sw{display:flex;gap:18px;justify-content:center;padding:10px}
+.lever{width:56px;height:90px;border:3px solid #2b2135;border-radius:12px;background:#f4ecdc;position:relative;cursor:pointer;box-shadow:inset 0 0 0 6px #e0d4bc}
+.lever::after{content:"";position:absolute;left:12px;right:12px;height:34px;border-radius:8px;background:#d64545;border:3px solid #2b2135;top:44px;transition:top .3s,background .3s}
+.lever.on::after{top:6px;background:#2e9d5b}
+.stage.roomin{padding:10px;text-align:center;background:#2a2036;color:#fff;transition:background .6s}
+.stage.roomin.lit{background:radial-gradient(circle at 50% 20%,#fff6a8,#c9a24a 40%,#3a2f4a)}
+.bulbw{display:flex;justify-content:center}
+.bulbw.off{filter:grayscale(1) brightness(.6)}
+.bulbw.off .rays{display:none}
+/* Kurbağalar, Hanoi */
+.pads{display:flex;justify-content:center;gap:6px;padding:40px 8px 18px;background:radial-gradient(circle at 30% 30%,#7cc7ff,#2f6fa8)}
+.pad{width:min(12.5vw,76px);height:min(12.5vw,76px);border-radius:50%;background:radial-gradient(circle at 40% 35%,#6cc04a,#2e7d32);border:3px solid #2b2135;display:flex;align-items:flex-end;justify-content:center;cursor:pointer;position:relative}
+.pad i{position:absolute;top:50%;left:50%;width:50%;height:3px;background:#2b2135;transform-origin:left;transform:rotate(-30deg)}
+.fr{position:relative;bottom:12px}
+.fr .ico{width:min(10vw,56px);height:auto}
+.fr.b{filter:hue-rotate(170deg) saturate(1.6)}
+.jump{animation:jump .45s}.jump2{animation:jump2 .55s}
+.hanoi{display:flex;justify-content:space-around;align-items:flex-end;height:220px;padding:10px;background:radial-gradient(circle at 50% 0,#ffd34d55,transparent 60%),linear-gradient(#4a2f5e 85%,#2a1838 85%)}
+.peg{flex:1;display:flex;flex-direction:column-reverse;align-items:center;height:100%;cursor:pointer;position:relative;padding-bottom:10px}
+.peg::before{content:"";position:absolute;bottom:0;top:20px;width:12px;background:linear-gradient(90deg,#fff,#c9d6e3);border:2px solid #2b2135;border-radius:4px}
+.peg::after{content:"";position:absolute;bottom:0;left:6%;right:6%;height:10px;background:#a8673a;border:2px solid #2b2135;border-radius:4px}
+.peg.sel{background:rgba(255,255,255,.12);border-radius:12px}
+.disk{height:24px;border:3px solid #2b2135;border-radius:12px;position:relative;z-index:1;margin-top:2px;transition:transform .2s;box-shadow:inset 0 -5px 0 rgba(0,0,0,.18),inset 0 4px 0 rgba(255,255,255,.35)}
+.peg.sel .disk:last-child{transform:translateY(-16px)}
+/* Paradoks yardımcıları */
+.stage.theater{background:radial-gradient(circle at 50% 10%,#7b4fd1,#2a1838);color:#fff;text-align:center;padding:14px}
+.sign{font-size:22px;font-weight:800;background:#2f5d4a;border:4px solid #a8673a;border-radius:8px;display:inline-block;padding:4px 14px}
+.liarw{display:flex;justify-content:center;margin-top:6px}
+.lb2{display:inline-block;font-size:26px;font-weight:800;padding:2px 14px;border-radius:10px;border:3px solid #fff;animation:pop .4s}
+.lb2.t{background:#2e9d5b}.lb2.f{background:#d64545}
+.tx{min-height:3em;margin-top:6px}
+.track{position:relative;height:120px;background:linear-gradient(#8fd3ff 40%,#e07a4f 40%)}
+.lane{position:absolute;left:0;right:0;top:78px;height:2px;border-top:2px dashed #fff}
+.runner{position:absolute;bottom:4px;transition:left .8s ease;transform:translateX(-50%)}
+.mark{position:absolute;bottom:0;font-size:11px;font-weight:800;color:#fff;transform:translateX(-50%);border-left:2px solid #fff;padding-left:2px;height:46px}
+.sea{background:linear-gradient(#8fd3ff 55%,#2f6fa8 55%);padding:6px 0 18px}
+.mast{display:flex;justify-content:center;margin-bottom:-36px}
+.waves2{position:absolute;left:0;right:0;bottom:8px;height:8px;background:repeating-radial-gradient(circle at 10px 10px,#fff8 0 4px,transparent 5px 20px);animation:flow 2s linear infinite;width:200%}
+.ship{display:flex;justify-content:center;gap:3px;padding:10px;flex-wrap:wrap;position:relative}
+.plank{width:24px;height:44px;border:3px solid #2b2135;border-radius:4px;background:repeating-linear-gradient(#6b4220 0 6px,#5a361a 6px 9px);cursor:pointer;transition:background .4s,transform .4s}
+.plank.n{background:repeating-linear-gradient(#f0cf8a 0 6px,#d9b26a 6px 9px);transform:translateY(-4px)}
+.salon{background:linear-gradient(#ffe7c7 78%,#e5b98a 78%);padding:10px;color:#2b2135;text-align:center}
+.salon .pl{position:absolute;left:10px;top:10px}
+.salon .bw{display:inline-block;transition:transform .4s}.salon .bw.shave{transform:rotate(-8deg) scale(1.05)}
+.mirror{position:absolute;right:14px;top:14px;width:70px;height:86px;border:5px solid #c9a24a;border-radius:40px;background:linear-gradient(135deg,#d6f0ff,#9ec9ff);display:flex;align-items:center;justify-content:center;font-size:32px}
+.rule{margin:4px 0}
+.partyb{background:linear-gradient(#ffe1ec,#ffb3c8);padding:8px}
+.guests{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;align-items:flex-end;min-height:40px}
+.guests span{animation:popin .4s both}
+.cal{display:grid;grid-template-columns:repeat(31,1fr);gap:1px;margin:8px 0}
+.cal i{aspect-ratio:1;background:var(--soft);border-radius:2px}
+.cal i.p{background:var(--accent2)}.cal i.c{background:var(--bad);animation:pulse .6s 3}
+.hotelx{background:linear-gradient(#f0b27a,#d68a4a);padding:8px}
+.rooms{display:flex;gap:4px;overflow:hidden;padding:4px 0}
+.room{min-width:64px;border:3px solid #2b2135;border-radius:10px 10px 0 0;text-align:center;background:#ffe9a8;padding:2px;color:#2b2135}
+.room b{display:block;font-size:13px}
+.room span{display:flex;justify-content:center;min-height:42px;align-items:center}
+.room em{font-size:12px;color:#999}
+.slide{animation:slidein .8s}
+.hosp2{display:flex;justify-content:space-around;background:linear-gradient(#8fd3ff 80%,#8bd36b 80%);padding:8px;text-align:center;color:#2b2135}
+.bars{display:grid;gap:6px;margin:8px 0}
+.bar{display:flex;align-items:center;gap:8px;font-size:14px}
+.bar div{height:22px;border:2px solid var(--line);border-radius:6px;transition:width .8s}
+.classr{display:flex;justify-content:space-around;align-items:flex-end;background:linear-gradient(#d9f0e3 80%,#c4a27a 80%);padding:8px}
+.stu.shock{animation:shake .3s 6}
+.days{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.day{border:3px solid var(--line);border-radius:12px;padding:6px 10px;min-width:72px;text-align:center;background:var(--soft);transition:all .4s;font-weight:700}
+.day.x{text-decoration:line-through;opacity:.4;transform:rotate(-6deg)}
+.day.now{background:var(--chip);transform:scale(1.1)}
+.day.exam{background:var(--bad);color:#fff;transform:scale(1.2) rotate(3deg)}
+.desert{height:220px;background:linear-gradient(#ffd9a0,#ffe9c7 70%,#e9c46a 70%)}
+.desert .hp{position:absolute;left:50%;bottom:20px;margin-left:-100px;transform-origin:50% 100%;transition:transform .5s}
+.desert .clock{position:absolute;top:6px;left:0;right:0;color:#2b2135}
+.grains i{position:absolute;width:5px;height:5px;border-radius:50%;background:#a07a2a}
+.space{background:radial-gradient(circle at 70% 30%,#3a2f7a,#141030);color:#fff;padding:10px;min-height:250px}
+.stars{position:absolute;inset:0;background-image:radial-gradient(#fff 1px,transparent 1.5px);background-size:40px 40px;opacity:.5;animation:blink 3s infinite}
+.tl{position:relative;display:flex;justify-content:space-between;border-top:3px dashed #fff8;margin:6px 10px 0;padding-top:2px;font-weight:800}
+.gp{position:absolute;left:10px;top:40px;display:flex}
+.me{position:absolute;right:10px;top:40px;transition:opacity .4s}
+.rk{position:absolute;right:90px;top:50px;transition:right 1.2s ease-in}
+.rk.fly{right:calc(100% - 230px);animation:shake .2s infinite}
+.space .tx{position:relative;margin-top:130px}
+.br{position:relative}
+.fam{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:6px 0}
+.fam span{display:flex;border:2px solid var(--line);border-radius:8px;padding:1px 3px;opacity:.3;animation:popin .3s both}
+.fam span.h{opacity:1}.fam span.bb{background:var(--chip);opacity:1}
+.casino{display:flex;justify-content:space-around;background:radial-gradient(#5a1f3a,#2a0f1c);color:#fff;padding:10px;text-align:center}
+.casino div{display:flex;flex-direction:column;align-items:center;max-width:46%}
+.casino small{font-size:12px;opacity:.85}
+svg.chart{width:100%;height:auto;background:var(--soft);border-radius:10px;display:block}
+/* Oyun içi detay animasyonları */
+.jbox .pour{position:absolute;top:-40px;left:44%;width:9px;height:120%;background:linear-gradient(#7cc7ff,#2f6fa8);border-radius:5px;z-index:2;animation:pour .85s ease-in forwards;opacity:.9}
+.jbox .pour::after{content:"";position:absolute;bottom:0;left:-10px;width:28px;height:10px;border-radius:50%;background:radial-gradient(#fff9,transparent 70%);animation:splash .3s infinite}
+@keyframes pour{0%{transform:scaleY(0);transform-origin:top}20%{transform:scaleY(1);transform-origin:top}80%{transform:scaleY(1);opacity:.9}100%{transform:scaleY(0);transform-origin:bottom;opacity:0}}
+@keyframes splash{50%{transform:scale(1.4);opacity:.4}}
+.hg .grain{position:absolute;left:50%;top:0;width:3px;height:3px;margin-left:-1.5px;border-radius:50%;background:#e9b44c;opacity:0;z-index:1}
+.hg.run .grain{animation:grain .6s linear infinite}.hg.run .g2{animation-delay:.2s}.hg.run .g3{animation-delay:.4s}
+@keyframes grain{0%{opacity:1;transform:translateY(0)}100%{opacity:1;transform:translateY(46px)}}
+.boat .wake{position:absolute;bottom:4px;left:50%;width:120%;height:14px;margin-left:-60%;border-radius:50%;border:2px solid #ffffff99;opacity:0}
+.boat.moving .wake{animation:wake 1s ease-out infinite}
+@keyframes wake{0%{opacity:.8;transform:scale(.6)}100%{opacity:0;transform:scale(1.5)}}
+/* Eklemli karakter animasyonları */
+.armL,.armR,.legL,.legR,.tail{transform-box:view-box}
+.armL{animation:armIdleL 3.4s ease-in-out infinite}.armR{animation:armIdleR 3.4s ease-in-out infinite}
+@keyframes armIdleL{0%,100%{transform:rotate(0)}50%{transform:rotate(5deg)}}
+@keyframes armIdleR{0%,100%{transform:rotate(0)}50%{transform:rotate(-5deg)}}
+.walking .legL{animation:stepA .55s ease-in-out infinite alternate}.walking .legR{animation:stepB .55s ease-in-out infinite alternate}
+.walking .armL{animation:stepB .55s ease-in-out infinite alternate}.walking .armR{animation:stepA .55s ease-in-out infinite alternate}
+@keyframes stepA{from{transform:rotate(16deg)}to{transform:rotate(-16deg)}}
+@keyframes stepB{from{transform:rotate(-16deg)}to{transform:rotate(16deg)}}
+.tail{animation:wag .9s ease-in-out infinite}@keyframes wag{0%,100%{transform:rotate(0)}50%{transform:rotate(-14deg)}}
+.throat{transform-box:fill-box;transform-origin:center;animation:throat 1.3s ease-in-out infinite}@keyframes throat{50%{transform:scale(1.12,1.18)}}
+.capeflap{transform-box:view-box;animation:capeflap 2.6s ease-in-out infinite}@keyframes capeflap{0%,100%{transform:skewX(0) scaleX(1)}50%{transform:skewX(-6deg) scaleX(1.06)}}
+.head{transform-box:view-box;animation:headTilt 5.5s ease-in-out infinite}
+@keyframes headTilt{0%,100%{transform:rotate(0)}30%{transform:rotate(-3.5deg)}55%{transform:rotate(0)}75%{transform:rotate(3deg)}}
+.mouth{transform-box:fill-box;transform-origin:50% 0;animation:talk 6s ease-in-out infinite}
+@keyframes talk{0%,70%,100%{transform:scaleY(1);fill-opacity:0}74%,82%{transform:scaleY(1.9);fill-opacity:.9}78%,86%{transform:scaleY(1.2);fill-opacity:.6}}
+.leaffall{transform-box:fill-box;animation:leaffall 7s linear infinite;opacity:0}
+@keyframes leaffall{0%{opacity:0;transform:translate(0,0) rotate(0)}10%{opacity:1}50%{transform:translate(-30px,30px) rotate(180deg)}90%{opacity:1}100%{opacity:0;transform:translate(-50px,62px) rotate(360deg)}}
+.cshadow{animation:cshadow 20s linear infinite}@keyframes cshadow{from{transform:translateX(-140px)}to{transform:translateX(360px)}}
+.motes circle{animation:mote 6s ease-in-out infinite}@keyframes mote{0%,100%{transform:translate(0,0);opacity:.2}50%{transform:translate(6px,-10px);opacity:.9}}
+.wingflap{transform-box:view-box;animation:wingflap .6s ease-in-out infinite alternate}@keyframes wingflap{to{transform:rotate(-14deg) scaleY(.85)}}
+.nod{transform-box:view-box;animation:nod 3s ease-in-out infinite}@keyframes nod{0%,100%{transform:rotate(0)}40%{transform:rotate(6deg)}60%{transform:rotate(-2deg)}}
+.twitch{transform-box:view-box;animation:twitch 4s ease-in-out infinite}@keyframes twitch{0%,86%,100%{transform:rotate(0)}89%{transform:rotate(-6deg)}93%{transform:rotate(4deg)}}
+.hairsway{transform-box:view-box;animation:hairsway 4s ease-in-out infinite}@keyframes hairsway{50%{transform:rotate(2.5deg) skewX(2deg)}}
+.fishjump{transform-box:view-box;animation:fishjump 6s ease-in-out infinite;opacity:0}
+@keyframes fishjump{0%,70%{opacity:0;transform:translate(0,10px) rotate(30deg)}72%{opacity:1}80%{transform:translate(-14px,-22px) rotate(-10deg)}88%{transform:translate(-28px,4px) rotate(-60deg);opacity:1}90%,100%{opacity:0;transform:translate(-28px,14px)}}
+.splash{transform-box:fill-box;transform-origin:center;animation:splashr 6s ease-out infinite;opacity:0}
+@keyframes splashr{0%,70%{opacity:0;transform:scale(.4)}73%{opacity:.9}80%{opacity:0;transform:scale(2.4)}86%{opacity:0;transform:translateX(-28px) scale(.4)}89%{opacity:.9;transform:translateX(-28px) scale(1)}96%,100%{opacity:0;transform:translateX(-28px) scale(2.4)}}
+.foam{animation:foam 2.4s ease-in-out infinite}@keyframes foam{50%{opacity:.25;transform:translateY(1.5px)}}
+.card{transform-style:preserve-3d;will-change:transform}
+.card .scene{transition:transform .2s}
+.river .fishj{position:absolute;bottom:18%;left:48%;width:34px;opacity:0;animation:fishjump 5s ease-in-out infinite;z-index:1}
+/* Bölüm girişleri */
+.intro-card{background:var(--card);border:3px solid var(--line);border-radius:18px;box-shadow:5px 5px 0 var(--line);margin-bottom:16px;overflow:hidden}
+.intro-card summary{cursor:pointer;list-style:none;padding:12px 16px;font-weight:800;font-size:20px;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 22%,var(--card)),var(--card));display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.intro-card summary small{font-weight:500;font-size:13px;color:var(--muted)}
+.iic{font-size:28px}
+.ibody{padding:4px 18px 16px}
+.ibody h3{margin:16px 0 8px;font-size:19px}
+.itop{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center}
+.itop p{margin:0;font-size:16.5px}
+@media (max-width:640px){.itop{grid-template-columns:1fr}.itop .iart{max-width:150px;margin:auto}}
+.iart{width:100%;height:auto;filter:drop-shadow(3px 4px 0 var(--line))}
+.g1{animation:spin 8s linear infinite}.g2{animation:spin 6s linear infinite reverse}
+.penrose{animation:penro 6s ease-in-out infinite}@keyframes penro{50%{transform:rotate(120deg) scale(.92)}}
+.ibig{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.ibig div{background:var(--soft);border:2px solid var(--line);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:2px;animation:fadeup .6s both}
+.ibig em{font-style:normal;font-size:30px}.ibig span{font-size:14px;color:var(--muted)}
+.iuse{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.iuse>div{display:flex;gap:10px;align-items:flex-start;border:2px solid var(--line);border-radius:14px;padding:10px;background:color-mix(in srgb,var(--accent2) 10%,var(--card));animation:fadeup .6s both}
+.iuse em{font-style:normal;font-size:28px}.iuse b{display:block}.iuse span{font-size:14px}
+.igain{margin:0;padding-left:0;list-style:none;display:grid;gap:6px}
+.igain li{padding:6px 12px 6px 36px;border-radius:10px;background:var(--soft);position:relative}
+.igain li::before{content:"✓";position:absolute;left:12px;color:var(--ok);font-weight:800}
+.itl{position:relative;display:grid;gap:8px;padding-left:22px}
+.itl::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:3px;background:linear-gradient(var(--accent),var(--accent2));border-radius:3px}
+.itl div{position:relative;display:flex;gap:10px;align-items:baseline;animation:fadeup .6s both}
+.itl div::before{content:"";position:absolute;left:-19px;top:6px;width:11px;height:11px;border-radius:50%;background:var(--accent);border:2px solid var(--line)}
+.itl b{min-width:78px;font-size:15px;color:var(--accent)}.itl span{font-size:15px}
+.shimmer{animation:shimmer 5s ease-in-out infinite}@keyframes shimmer{0%{transform:translateX(0)}100%{transform:translateX(420px)}}
+.godrays{animation:rays 6s ease-in-out infinite}@keyframes rays{50%{opacity:.08}}
+/* Katil Kim? */
+.kkhero{display:flex;gap:14px;align-items:center;background:radial-gradient(circle at 20% 30%,#3a3050,#141020);color:#f4eefc;border:3px solid var(--line);border-radius:18px;padding:14px 18px;box-shadow:5px 5px 0 var(--line);margin-bottom:14px;font-size:54px}
+.kkhero h2{margin:0;font-size:26px}.kkhero p{margin:2px 0 0;font-size:15px}
+.sol.case summary .rank{background:#2b2135}
+.ch{margin:14px 0 6px;font-size:18px}.ch small{font-weight:500;color:var(--muted);font-size:13px}
+.suspects{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.sus{position:relative;background:var(--soft);border:3px solid var(--line);border-radius:14px;padding:10px;display:flex;flex-direction:column;align-items:center;text-align:center;transition:transform .3s,opacity .4s}
+.sus .mug{width:100%;display:flex;justify-content:center;background:repeating-linear-gradient(0deg,#3a3050 0 10px,#2f2742 10px 20px);border-radius:10px;padding:6px 0;position:relative}
+.sus .mug::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 70%,rgba(0,0,0,.25));border-radius:10px}
+.sus p{font-size:14px;font-style:italic;margin:6px 0 8px;flex:1}
+.sus.cleared{opacity:.45;transform:scale(.97)}.sus.cleared::after{content:"MASUM";position:absolute;top:40%;left:50%;transform:translate(-50%,-50%) rotate(-12deg);font-weight:800;font-size:26px;color:#2e9d5b;border:4px solid #2e9d5b;border-radius:8px;padding:0 8px;background:#fff8}
+.sus.guilty{border-color:var(--bad);box-shadow:0 0 0 4px var(--bad);animation:pop .5s}.sus.guilty::after{content:"SUÇLU";position:absolute;top:40%;left:50%;transform:translate(-50%,-50%) rotate(-12deg);font-weight:800;font-size:28px;color:#d64545;border:4px solid #d64545;border-radius:8px;padding:0 8px;background:#fffa;animation:stampin .5s}
+.board2{display:flex;flex-wrap:wrap;gap:14px;padding:16px;border-radius:14px;border:6px solid #8b5a2b;background:radial-gradient(#c9a26a 1px,transparent 1.5px) 0 0/8px 8px,#b8894f}
+.clue{position:relative;width:170px;height:130px;perspective:600px;border:none;background:none;padding:0;cursor:pointer;transform:rotate(var(--r));font:inherit}
+.clue::before{content:"";position:absolute;top:-6px;left:50%;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff9a9a,#d64545);z-index:3;box-shadow:0 2px 2px #0006}
+.clue span{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:4px;padding:8px;backface-visibility:hidden;transition:transform .6s;box-shadow:3px 4px 0 #0004;color:#2b2135}
+.clue .front{background:#fff6e0;font-size:34px}.clue .front b{font-size:15px}.clue .front small{font-size:11px;color:#8a7a6a}
+.clue .back{background:#fffdf5;transform:rotateY(180deg);font-size:13.5px;text-align:center;line-height:1.3}.clue .back b{font-size:14px;color:#d64545}
+.clue.flip .front{transform:rotateY(180deg)}.clue.flip .back{transform:rotateY(360deg)}
+.cexp{position:relative;margin-top:10px}
+.stamp{display:inline-block;font-weight:800;font-size:28px;color:#d64545;border:5px double #d64545;border-radius:10px;padding:2px 14px;transform:rotate(-6deg);animation:stampin .6s;letter-spacing:2px}
+@keyframes stampin{0%{transform:scale(2.5) rotate(-6deg);opacity:0}70%{transform:scale(.92) rotate(-6deg);opacity:1}100%{transform:scale(1) rotate(-6deg)}}
+.rain{animation:rain .5s linear infinite}@keyframes rain{to{transform:translate(-8px,24px)}}
+.lightning{opacity:0;animation:lightning 7s infinite}@keyframes lightning{0%,88%,92%,95%,100%{opacity:0}89%,93%{opacity:.55}}
+.fog{animation:fogmove 12s ease-in-out infinite alternate}@keyframes fogmove{to{transform:translateX(30px)}}
+.snow{animation:snowfall 6s linear infinite}@keyframes snowfall{to{transform:translate(10px,40px)}}
+.flick{transform-box:fill-box;transform-origin:50% 100%;animation:flick .18s ease-in-out infinite alternate}@keyframes flick{to{transform:scale(.9,1.08) rotate(3deg)}}
+.candlew{animation:cw 1.6s ease-in-out infinite}@keyframes cw{50%{opacity:.7}}
+/* Katil Kim? — gelişmiş görünüm */
+.sus .mug{background:#d8d4cc;overflow:hidden;align-items:flex-end;min-height:120px}
+.sus .mug .ico{position:relative;z-index:1}
+.hgt{position:absolute;inset:6px 0 0;display:flex;flex-direction:column;justify-content:space-between;z-index:0}
+.hgt i{display:block;border-top:2px solid #2b213555;position:relative;font-style:normal}
+.hgt b{position:absolute;left:6px;top:-1px;font-size:9px;color:#2b2135aa;font-weight:800}
+.flashb{position:absolute;inset:0;background:#fff;opacity:0;z-index:2;pointer-events:none}
+.sus:hover .flashb{animation:camflash .5s}
+@keyframes camflash{0%{opacity:.9}100%{opacity:0}}
+.plate{margin-top:-14px;position:relative;z-index:3;background:#1d1d24;color:#fff;font-size:11px;font-weight:800;letter-spacing:1px;padding:2px 10px;border-radius:4px;border:2px solid #fff;font-family:"Courier New",monospace}
+.board2{position:relative}
+.strings{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.str{stroke-dasharray:600;stroke-dashoffset:600;animation:strdraw 1.2s ease-out forwards;filter:drop-shadow(1px 2px 0 #0004)}
+@keyframes strdraw{to{stroke-dashoffset:0}}
+.clue{z-index:1}.clue .front .ico{margin-bottom:2px}.cem{font-size:34px}
+.fire path{transform-box:fill-box;transform-origin:50% 100%;animation:flick .22s ease-in-out infinite alternate}
+.fire .fl1{animation-duration:.3s}.fire .fl2{animation-duration:.18s}
+.fireglow{animation:fireglow 1.1s ease-in-out infinite alternate}@keyframes fireglow{to{opacity:.07}}
+.lampswing{transform-box:view-box;animation:lampswing 4s ease-in-out infinite}@keyframes lampswing{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+.bolt{animation:bolt 7s infinite}@keyframes bolt{0%,88%,92%,95%,100%{opacity:0}89%,93%{opacity:1}}
+.drops path{animation:drops 1.2s linear infinite}.drops path:nth-child(2n){animation-delay:.5s}@keyframes drops{to{transform:translateY(14px);opacity:0}}
+.sunrays2{transform-box:view-box;transform-origin:50px 50px;animation:spin 20s linear infinite}
+.needle{transform-box:view-box;animation:needle 3s ease-in-out infinite}@keyframes needle{0%,100%{transform:rotate(80deg)}50%{transform:rotate(100deg)}}
+/* Katil Kim? — sinematik hikâye */
+.case .sframe{overflow:hidden;border-radius:14px}
+.case .sframe .scene{animation:kenburns 9s ease-out forwards;transform-origin:50% 55%}
+@keyframes kenburns{from{transform:scale(1.02) translate(0,0)}to{transform:scale(1.06) translate(-1%,.5%)}}
+.case .scap{background:#15111d;color:#f1e7d0;border-color:#3a3050;font-family:Georgia,"Times New Roman",serif;font-weight:500;font-style:italic;font-size:17.5px;line-height:1.5;min-height:4.8em;box-shadow:inset 0 0 30px #000}
+.case .scap::first-letter{font-size:1.5em;color:#ffd34d;font-style:normal;font-weight:700}
+.sbub{transform-box:fill-box;transform-origin:50% 100%;animation:bubpop .5s cubic-bezier(.3,1.6,.5,1) .6s both}
+@keyframes bubpop{from{transform:scale(.2);opacity:0}}
+.tstamp{animation:fadeup .6s .2s both}.tstamp text{animation:blink 1.6s steps(1) 3}
+.sfx{transform-box:fill-box;transform-origin:center;animation:sfx .7s cubic-bezier(.3,1.8,.5,1) .3s both}
+@keyframes sfx{from{transform:scale(0) rotate(-30deg);opacity:0}}
+.lbox{animation:lbox .8s ease-out both}@keyframes lbox{from{transform:scaleY(2.4)}}
+/* Kuantum Okulu */
+.mascot{display:flex;gap:12px;align-items:center;margin:12px 0}
+.kuantik{width:92px;height:92px;flex:0 0 auto;animation:kfloat 3s ease-in-out infinite;filter:drop-shadow(0 0 14px #3fa9e6aa)}
+.korb{transform-box:view-box;transform-origin:50px 52px;animation:spin 5s linear infinite}
+@keyframes kfloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+.mbub{position:relative;background:color-mix(in srgb,#3fa9e6 16%,var(--card));border:3px solid var(--line);border-radius:16px;padding:10px 14px;font-size:16px;box-shadow:3px 3px 0 var(--line);animation:fadeup .6s .3s both}
+.mbub::before{content:"";position:absolute;left:-14px;top:50%;margin-top:-10px;border:10px solid transparent;border-right:14px solid var(--line);border-left:0}
+.mbub b{color:#2f9e96}
+.box.analog{background:color-mix(in srgb,#ff7aa2 14%,var(--card))}
+.qart{display:grid;grid-template-columns:repeat(32,1fr);gap:1px;margin-top:8px;max-width:520px}
+.qart i{aspect-ratio:1;border-radius:2px;animation:popin .25s}.qart i.b1{background:#ff7a59}.qart i.b0{background:#1d5fa0}
+.qhero{position:relative;border:3px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:5px 5px 0 var(--line);margin-bottom:14px}
+.qhero .qcv{display:block;width:100%}
+.qhtx{position:absolute;inset:0;padding:14px 18px;color:#fff;max-width:68%;display:flex;flex-direction:column;justify-content:center}
+.qhtx h2{margin:0}.qhtx p{margin:4px 0 0;font-size:15px;text-shadow:0 1px 3px #000}
+@media (max-width:640px){.qhtx{max-width:100%;background:linear-gradient(90deg,rgba(11,16,38,.85),rgba(11,16,38,.3))}}
+.qsteps{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px}
+.qstep{flex:0 0 auto;width:88px;font:inherit;background:var(--card);color:var(--ink);border:3px solid var(--line);border-radius:14px;padding:4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;box-shadow:3px 3px 0 var(--line)}
+.qstep span{font-weight:800;font-size:13px;width:24px;height:24px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center}
+.qstep em{font-style:normal;font-size:22px}.qstep small{font-size:11px;line-height:1.1;text-align:center;font-weight:700}
+.qstep.on{background:var(--accent);color:#fff}.qstep.ok span{background:var(--ok);color:#fff}
+.qles{background:var(--card);border:3px solid var(--line);border-radius:18px;padding:14px 16px;box-shadow:5px 5px 0 var(--line)}
+.qles h2{margin:2px 0 8px}
+.qstory{background:linear-gradient(135deg,#1a1238,#2a1d55);color:#e8e4ff;border-radius:14px;padding:12px 14px;font-size:17px;border:2px solid var(--line);animation:fadeup .6s}
+.qsim{margin-top:12px}
+.qcv{display:block;width:100%;border-radius:14px;border:3px solid var(--line)}
+.qctl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:flex-end;margin-top:8px}
+.qsl{display:flex;flex-direction:column;font-size:14px;min-width:200px;flex:1}
+.qsl.chk{flex-direction:row;gap:6px;align-items:center;min-width:auto;flex:0 1 auto}
+.qsl select{font:inherit;padding:2px 6px;border:2px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.qread{margin-top:8px;padding:8px 12px;border-radius:12px;background:var(--soft);font-size:15px;border:2px dashed var(--line)}
+.lvls{display:flex;gap:6px;flex-wrap:wrap}
+.spec{margin-top:8px}.sbar{position:relative;height:26px;border-radius:6px;border:2px solid var(--line);background:#000}
+.sbar i{position:absolute;top:0;bottom:0;width:4px;margin-left:-2px;animation:popin .4s}
+.box.qf{background:color-mix(in srgb,#ffd34d 14%,var(--card))}
+.frm{display:grid;grid-template-columns:minmax(150px,max-content) 1fr;gap:4px 14px;align-items:center;padding:6px 0;border-bottom:1px dashed color-mix(in srgb,var(--line) 30%,transparent)}
+.frm:last-child{border:none}
+.frm code{font-family:"Cambria Math","STIX Two Math",Georgia,serif;font-size:19px;background:#1a1238;color:#ffe48a;padding:4px 10px;border-radius:8px;white-space:nowrap}
+.frm p{margin:0;font-size:15px}
+@media (max-width:640px){.frm{grid-template-columns:1fr}.frm code{white-space:normal}}
+.bellres{margin-top:6px;padding:6px 10px;border-radius:10px;color:#fff}.bellres.q{background:var(--ok)}.bellres.c{background:#6b6275}
+.bbtab{border-collapse:collapse;font-size:13px;margin-top:8px}.bbt{overflow-x:auto}
+.bbtab th,.bbtab td{border:1px solid var(--line);padding:2px 5px;text-align:center}
+.bbtab th{background:var(--chip);white-space:nowrap}.bbtab td.ok{background:#2e9d5b55}.bbtab td.er{background:#d6454588}.bbtab td.no{opacity:.35}
+.qnav{justify-content:space-between}
+/* Yeni kutular ve En Zor 5 */
+.box.simple{background:color-mix(in srgb,#9b7bff 14%,var(--card))}
+.box ul{margin:4px 0;padding-left:20px}.box li{margin-bottom:4px}
+.sol.top summary{font-size:21px}
+.rank{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;border:3px solid var(--line);font-weight:800}
+.who{font-weight:600;color:var(--muted);font-size:14px;width:100%;padding-left:28px}
+.story .sframe .scene{border:3px solid var(--line);border-radius:14px}
+.story .sframe.in{animation:frameIn .9s ease-out}
+.scap{min-height:3.2em;font-size:18px;font-weight:700;margin:10px 4px 4px;padding:8px 12px;border-radius:12px;background:var(--chip);border:2px solid var(--line)}
+.sdots{display:flex;gap:6px;justify-content:center;margin-top:6px}
+.sdots i{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);cursor:pointer}
+.sdots i.on{background:var(--accent)}
+/* Korsanlar */
+.shipdeck{background:linear-gradient(#ffb27a,#ffe1b0 45%,#2f6fa8 45%,#2f6fa8 62%,#a8673a 62%);min-height:190px;padding:10px 6px 6px}
+.crew{display:flex;justify-content:space-around;align-items:flex-end;padding-top:30px}
+.pir{display:flex;flex-direction:column;align-items:center;position:relative;color:#fff;text-shadow:0 1px 2px #000;transition:transform .8s,opacity .8s}
+.pir small{font-weight:800}
+.pir.yes{animation:bob .6s 3}.pir.no{animation:shake .4s 3}
+.pir.splash{transform:translate(-40px,80px) rotate(-60deg);opacity:0}
+.chestw{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);opacity:.9}
+.alloc{display:grid;gap:4px;margin-top:8px}
+.arow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.arow span{min-width:110px}.arow b{min-width:34px;text-align:center;font-size:19px}
+.arow .btn{padding:0 10px}
+/* Satranç */
+.chess{background:#3a2f4a;padding:10px}
+.board{display:grid;grid-template-columns:repeat(8,1fr);max-width:420px;margin:auto;border:4px solid #2b2135;box-shadow:0 6px 0 #6b4220}
+.sq{aspect-ratio:1;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+.sq.lt{background:#f4ecdc}.sq.dk{background:#a8673a}
+.sq.att::after{content:"";position:absolute;inset:0;background:#d6454555}
+.sq.bad{background:#d64545!important;animation:shake .4s}
+.sq .ico{width:82%;height:auto;animation:popin .3s}
+/* Işıklar */
+.lights{background:radial-gradient(#2a2050,#0f0a24);padding:16px}
+.lgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:330px;margin:auto}
+.lamp{aspect-ratio:1;border-radius:14px;border:3px solid #2b2135;background:radial-gradient(circle at 35% 30%,#4a3d5e,#241a3a);cursor:pointer;transition:background .25s,box-shadow .25s}
+.lamp.on{background:radial-gradient(circle at 35% 30%,#fffbe0,#ffd34d 45%,#e9a020);box-shadow:0 0 18px #ffd34d,inset 0 -4px 0 #c9881a}
+.lamp.pulse1{animation:pop .3s}
+/* Bertrand, St. Petersburg */
+.drawers{display:flex;justify-content:space-around;background:linear-gradient(#f3d9a4 75%,#a8673a 75%);padding:12px;color:#2b2135;text-align:center}
+.drw{display:flex;flex-direction:column;align-items:center;transition:transform .4s}
+.drw.pick{transform:translateY(-8px) scale(1.08);filter:drop-shadow(0 0 10px #ffd34d)}
+.dbox{display:flex;gap:6px;padding:10px;background:#8b5a2b;border:3px solid #2b2135;border-radius:10px}
+.dbox span{width:30px;height:30px;border-radius:50%;border:3px solid #2b2135;box-shadow:inset -4px -4px 0 rgba(0,0,0,.2),inset 3px 3px 0 rgba(255,255,255,.5)}
+.flipcoin.go{animation:coinflip .5s}
+.horn{background:#1d1430}
+/* Sahne animasyonları */
+.pupil{animation:look 7s ease-in-out infinite}
+@keyframes look{0%,30%,100%{transform:translate(0,0)}40%,55%{transform:translate(1.2px,.3px)}65%,80%{transform:translate(-1.2px,.2px)}}
+.hand2{transform-box:view-box;transform-origin:50px 50px;animation:spin 48s linear infinite}
+.smoke circle{animation:steam 1.6s ease-out infinite}.smoke circle:nth-child(2){animation-delay:.5s}
+.bwing{transform-box:fill-box;transform-origin:center;animation:flapw .25s ease-in-out infinite alternate}
+@keyframes flapw{to{transform:scaleX(.35)}}
+.flutter{animation:flutter 7s ease-in-out infinite}
+@keyframes flutter{0%,100%{transform:translate(0,0)}25%{transform:translate(30px,-12px)}50%{transform:translate(55px,4px)}75%{transform:translate(20px,10px)}}
+.fronds{transform-box:fill-box;transform-origin:50% 100%;animation:sway 3.5s ease-in-out infinite}
+.orbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.orb{display:flex;align-items:center;gap:3px;background:var(--soft);border:2px solid var(--line);border-radius:10px;padding:4px 8px}
+.orb b{margin-right:4px}
+.orb span{width:30px;height:30px;border:2px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--card);font-weight:800}
+.orb span.full{background:color-mix(in srgb,var(--accent2) 25%,var(--card))}.orb span.half{background:color-mix(in srgb,#ffd34d 30%,var(--card))}
+.orb i{font-style:normal;animation:popin .3s}.orb i.up{color:#2f9e96}.orb i.dn{color:#d64545}
+.sway{transform-box:fill-box;transform-origin:50% 100%;animation:sway 4.5s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-1.2deg)}50%{transform:rotate(1.2deg)}}
+.grassw path{transform-box:fill-box;transform-origin:50% 100%;animation:sway 3s ease-in-out infinite}
+.grassw path:nth-child(3n){animation-delay:.8s}.grassw path:nth-child(3n+1){animation-delay:1.6s}
+.sunrays{transform-box:view-box;transform-origin:40px 28px;animation:spin 24s linear infinite}
+.breathe{animation:breathe 3.2s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.012,1.03)}}
+.birds{animation:birds 18s linear infinite}
+.bflap{animation:flap .5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.sparkle path{animation:twinkle 2s ease-in-out infinite}.sparkle path:nth-child(2){animation-delay:.7s}.sparkle path:nth-child(3){animation-delay:1.3s}
+.heat{animation:flow 2.5s linear infinite}
+.zz text{animation:zz 2.4s ease-in-out infinite}.zz text:nth-child(2){animation-delay:.4s}.zz text:nth-child(3){animation-delay:.8s}
+.breath{animation:blink 1.4s infinite}
+.polestripes{animation:poleup 1.5s linear infinite}
+.beam2{animation:blink 2s infinite}
+@keyframes birds{from{transform:translateX(-40px)}to{transform:translateX(380px)}}
+@keyframes flap{50%{transform:scaleY(.4)}}
+@keyframes twinkle{0%,100%{opacity:0}50%{opacity:1}}
+@keyframes zz{0%{opacity:0;transform:translateY(4px)}50%{opacity:1}100%{opacity:0;transform:translateY(-6px)}}
+@keyframes poleup{to{transform:translateY(-16px)}}
+@keyframes coinflip{50%{transform:rotateY(180deg) translateY(-30px)}}
+@keyframes frameIn{from{opacity:0;transform:scale(1.04)}}
+.a{transform-box:fill-box;transform-origin:50% 100%}
+.bob{animation:bob 1.8s ease-in-out infinite}
+.row{animation:row 7s ease-in-out infinite alternate}
+.float{animation:float 3s ease-in-out infinite}
+.shake{animation:shake 1.2s ease-in-out infinite}
+.spin{animation:spin 6s linear infinite;transform-origin:center}
+.walk{animation:walk 5s ease-in-out infinite alternate}
+.pulse{animation:pulse 1.6s ease-in-out infinite}
+.tilt{animation:tilt 2.4s ease-in-out infinite}
+.blink{animation:blink 2s steps(1) infinite}
+.hop{animation:jump 1.4s ease-in-out infinite}
+.waves{animation:flow 3s linear infinite}
+.cloud{animation:walk 16s ease-in-out infinite alternate}
+@keyframes bob{0%,100%{transform:translateY(0) scale(1,1)}10%{transform:translateY(0) scale(1.03,.97)}45%{transform:translateY(-5px) scale(.98,1.02)}60%{transform:translateY(-4px) scale(1,1)}90%{transform:translateY(0) scale(1.02,.98)}}
+@keyframes rock{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+@keyframes row{to{transform:translateX(70px)}}
+@keyframes walk{0%{transform:translate(0,0) rotate(0)}10%{transform:translate(6px,-3px) rotate(1.5deg)}20%{transform:translate(12px,0) rotate(0)}30%{transform:translate(18px,-3px) rotate(-1.5deg)}40%{transform:translate(24px,0)}50%{transform:translate(30px,-3px) rotate(1.5deg)}60%{transform:translate(36px,0)}70%{transform:translate(42px,-3px) rotate(-1.5deg)}80%{transform:translate(48px,0)}90%{transform:translate(54px,-3px) rotate(1.5deg)}100%{transform:translate(60px,0)}}
+@keyframes float{50%{transform:translateY(-10px) rotate(4deg)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px) rotate(-2deg)}75%{transform:translateX(3px) rotate(2deg)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{50%{transform:scale(1.1)}}
+@keyframes tilt{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+@keyframes blink{50%{opacity:.25}}
+@keyframes blinkEye{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+@keyframes jump{0%,100%{transform:translateY(0) scale(1,1)}15%{transform:translateY(0) scale(1.12,.86)}50%{transform:translateY(-22px) scale(.92,1.1)}85%{transform:translateY(0) scale(1.1,.9)}}
+@keyframes jump2{0%,100%{transform:translateY(0)}50%{transform:translateY(-40px) rotate(-10deg)}}
+@keyframes flow{to{transform:translateX(-40px)}}
+@keyframes wig{50%{transform:rotate(-8deg) scale(1.1)}}
+@keyframes pop{50%{transform:scale(1.06)}}
+@keyframes popin{from{transform:scale(.6);opacity:0}}
+@keyframes zoomin{from{transform:scale(1.15);filter:blur(4px);opacity:.3}}
+@keyframes fadeup{from{transform:translateY(8px);opacity:0}}
+@keyframes slidein{from{transform:translateX(-60px);opacity:.2}}
+@keyframes slosh{30%{transform:rotate(-5deg)}60%{transform:rotate(4deg)}}
+@keyframes dooropen{50%{transform:perspective(300px) rotateY(-70deg)}}
+@keyframes steam{0%{transform:translateY(4px);opacity:.2}50%{opacity:1}100%{transform:translateY(-6px);opacity:0}}
+@keyframes dash{to{stroke-dashoffset:-12}}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+@keyframes flash{0%,60%{box-shadow:0 0 0 6px var(--accent)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1><span>🧠</span> Zeka Uyananlar <span>💡</span></h1>
+  <p class="sub">Oynayarak çöz: nehir geçişleri, teraziler, kum saatleri ve akıl karıştıran paradokslar</p>
+  <div class="score" id="score">Puan: 0 / 30</div>
+</header>
+<nav role="tablist">
+  <button role="tab" data-tab="puz" aria-selected="true">🛶 Zeka Soruları</button>
+  <button role="tab" data-tab="par" aria-selected="false">🌀 Paradokslar</button>
+  <button role="tab" data-tab="top" aria-selected="false">🏛️ En Zor 5 Paradoks</button>
+  <button role="tab" data-tab="lg" aria-selected="false">🧠 Mantık Soruları</button>
+  <button role="tab" data-tab="kk" aria-selected="false">🕵️ Katil Kim?</button>
+  <button role="tab" data-tab="qm" aria-selected="false">⚛️ Kuantum Okulu</button>
+  <button role="tab" data-tab="sol" aria-selected="false">📖 Çözümler</button>
+</nav>
+<main>
+  <section id="puz"><p class="hint">Bir karta tıkla: önce kısa hikâyeyi izle, sonra bulmacayı canlı canlı oynayarak çöz. Çözünce ✅ puan kazanırsın.</p><div class="grid" id="gridPuz"></div></section>
+  <section id="par" hidden><div id="introPar"></div><p class="hint">Her paradoksu deneylerle keşfet, sonra son soruyu cevapla.</p><div class="grid" id="gridPar"></div></section>
+  <section id="top" hidden><p class="hint">Filozofları, matematikçileri ve fizikçileri yüzyıllardır uğraştıran beş dev paradoks. Her birinde kısa bir animasyonlu hikâye, genel bilgi, neden paradoks olduğu, çözüm denemeleri ve tarihçe var.</p><div id="topList"></div></section>
+  <section id="lg" hidden><div id="introLg"></div><p class="hint">Her soru kısa, animasyonlu bir hikâyeyle başlıyor. Hikâyeyi izle, cevabını seç, sonra adım adım açıklamayı ve sorunun ilginç tarihçesini oku.</p><div id="logicList"></div></section>
+  <section id="kk" hidden><div class="kkhero">🕵️ <div><h2>Katil Kim?</h2><p>Her dosya kısa, animasyonlu bir hikâyeyle açılıyor. Şüphelilerin ifadelerini oku, ipucu kartlarını çevir ve suçluyu göster. Yanlış kişiyi suçlarsan o şüpheli temize çıkar; doğru kişiyi bulunca dava kapanır!</p></div></div><div id="caseList"></div></section>
+  <section id="qm" hidden>
+    <div class="qhero"><canvas id="qhero"></canvas><div class="qhtx"><h2>⚛️ Kuantum Okulu</h2><p>Atomların, ışığın ve elektronların gizemli dünyasına 20 adımlık bir yolculuk. Rehberin, şakacı elektron Kuantik! Her derste canlı bir simülasyon, formüller, gerçek hayattaki kullanımı, tarihçe ve bir mini sınav var. Sırayla ilerle!</p></div></div>
+    <div id="introQm"></div><div class="qsteps" id="qsteps"></div><div id="qlesson"></div>
+  </section>
+  <section id="sol" hidden>
+    <p class="hint">Önce kendin dene! Her çözümde adım adım yol, neden işe yaradığı ve tarihçesi var.</p>
+    <h2>🛶 Zeka Soruları</h2><div id="solPuz"></div>
+    <h2>🌀 Paradokslar</h2><div id="solPar"></div>
+  </section>
+</main>
+<div class="ov" id="ov" hidden><div class="modal" role="dialog" aria-modal="true">
+  <button class="x" id="mx" aria-label="Kapat">✕</button>
+  <div class="intro" id="intro"></div>
+  <div id="play" hidden>
+    <h2 id="mt"></h2><p class="q" id="mq"></p>
+    <div id="mg"></div><div class="msg" id="mm" aria-live="polite"></div>
+    <div id="mc"></div>
+  </div>
+  <div class="mfoot"><button class="btn alt" id="msol">📖 Çözümü gör</button><button class="btn alt" id="mclose">Kapat</button></div>
+</div></div>
+<script src="models.js?v=27"></script>
+<script src="games.js?v=27"></script>
+<script src="games2.js?v=27"></script>
+<script src="data.js?v=27"></script>
+<script src="data2.js?v=27"></script>
+<script src="quantum.js?v=27"></script>
+<script src="quantum2.js?v=27"></script>
+<script src="quantum3.js?v=27"></script>
+<script src="logic.js?v=27"></script>
+<script src="mystery.js?v=27"></script>
+<script src="mystery2.js?v=27"></script>
+<script src="mystery3.js?v=27"></script>
+<script src="intro.js?v=27"></script>
+<script>
+/* ================= SAHNELER ================= */
+const K="#2b2135";
+const sky=(a="#8fd3ff",b="#d6f0ff")=>`<defs><linearGradient id="g${a.slice(1)}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="320" height="160" fill="url(#g${a.slice(1)})"/>`;
+const sun=`<g class="sunrays">${Array.from({length:12},(_,i)=>`<path d="M40 28 L${40+Math.cos(i*Math.PI/6)*26} ${28+Math.sin(i*Math.PI/6)*26}" stroke="#ffe48a" stroke-width="3" stroke-linecap="round" opacity=".7"/>`).join("")}</g><circle cx="40" cy="28" r="20" fill="#fff6c2" opacity=".35"/><circle cx="40" cy="28" r="13" fill="url(#sung)" stroke="${K}" stroke-width="2"/><defs><radialGradient id="sung" cx=".35" cy=".35"><stop offset="0" stop-color="#fff6c2"/><stop offset="1" stop-color="#ffb627"/></radialGradient></defs><path d="M35 30 q5 4 10 0" fill="none" stroke="${K}" stroke-width="1.5"/>`;
+const cloud=(x,y,sc,d)=>`<g class="cloud" style="animation-duration:${d}s"><g transform="translate(${x} ${y}) scale(${sc})"><path d="M2 14 q2 -12 16 -8 q6 -12 20 -4 q14 -4 16 8 q8 2 4 8 h-52 q-8 -2 -4 -4z" fill="#7a8fb8" opacity=".25"/><path d="M0 10 q2 -12 16 -8 q6 -12 20 -4 q14 -4 16 8 q8 2 4 8 h-52 q-8 -2 -4 -4z" fill="url(#clg)" stroke="${K}" stroke-width="1.2"/><path d="M6 14 q20 4 46 0" fill="none" stroke="#b8c8e0" stroke-width="2.5" opacity=".8"/><path d="M8 6 q6 -6 12 -2" fill="none" stroke="#fff" stroke-width="2"/></g></g>`;
+const clouds=`<defs><linearGradient id="clg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d6e4f5"/></linearGradient><linearGradient id="mtn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fb4d8"/><stop offset="1" stop-color="#c9d8ee"/></linearGradient><linearGradient id="hill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9ad67a"/><stop offset="1" stop-color="#6fbf4a"/></linearGradient></defs>`+cloud(96,22,.9,16)+cloud(206,14,.7,22);
+const hills=`<path d="M0 92 L36 62 L60 76 L104 44 L140 74 L186 52 L232 80 L278 56 L320 72 V112 H0Z" fill="url(#mtn)"/><path d="M104 44 L140 74 L120 74Z M186 52 L232 80 L206 80Z M278 56 L320 72 L300 76Z M36 62 L60 76 L46 78Z" fill="#7d93bd" opacity=".55"/><path d="M96 52 L104 44 L113 54 L106 51Z M180 58 L186 52 L193 60 L187 57Z M272 62 L278 56 L285 64 L279 61Z" fill="#fff"/><path d="M0 102 Q50 82 110 98 T220 92 T320 98 V114 H0Z" fill="url(#hill)" opacity=".9"/>`;
+const grass=(x0,x1,y)=>{let g="";for(let x=x0;x<x1;x+=5){const h=4+((x*7)%5);g+=`<path d="M${x} ${y} q1 -${h} ${2+((x*3)%3)} -${h+2}" stroke="#3d8a2a" stroke-width="1.4" fill="none"/>`}return`<g class="grassw">${g}</g>`};
+const flowers=pts=>pts.map(([x,y,c])=>`<g><path d="M${x} ${y} v-6" stroke="#3d8a2a" stroke-width="1.2"/><circle cx="${x}" cy="${y-7}" r="2.6" fill="${c}" stroke="${K}" stroke-width=".8"/><circle cx="${x}" cy="${y-7}" r="1" fill="#ffd34d"/></g>`).join("");
+function bg(type){
+  if(window.EXTRA_BG&&EXTRA_BG[type])return EXTRA_BG[type]();
+  switch(type){
+    case "river": return sky()+sun+clouds+hills+`<rect y="104" width="320" height="56" fill="#3f8fd0"/><g class="waves"><path d="M0 122 q10 -6 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" fill="none" stroke="#fff" stroke-width="2" opacity=".6"/><path d="M0 142 q10 -5 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" fill="none" stroke="#fff" stroke-width="2" opacity=".4"/></g><path d="M0 102 h96 q10 0 14 10 l12 48 H0Z" fill="#6fbf4a" stroke="${K}" stroke-width="2.5"/><path d="M320 102 h-80 q-10 0 -14 10 l-12 48 H320Z" fill="#6fbf4a" stroke="${K}" stroke-width="2.5"/><path d="M0 108 h94" stroke="#8bd36b" stroke-width="4"/>`;
+    case "sea": return sky()+sun+clouds+`<rect y="100" width="320" height="60" fill="#2f6fa8"/><g class="waves"><path d="M0 110 q10 -6 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" fill="none" stroke="#fff" stroke-width="2.5" opacity=".7"/></g><path d="M250 100 l18 -26 l14 14 l10 -10 l28 22Z" fill="#9aa0a6" stroke="${K}" stroke-width="2"/>`;
+    case "pond": return sky()+sun+`<rect y="92" width="320" height="68" fill="#3f8fd0"/><g class="waves"><path d="M0 104 q10 -5 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" fill="none" stroke="#fff" stroke-width="2" opacity=".5"/></g><path d="M0 92 q20 -14 40 0 M280 92 q20 -16 40 0" fill="#3d8a2a"/><g fill="#3d9a46" stroke="${K}" stroke-width="2">${[40,80,120,160,200,240,280].map(x=>`<ellipse cx="${x}" cy="130" rx="21" ry="7"/>`).join("")}</g><g stroke="#3d8a2a" stroke-width="3">${[10,22,300,310].map(x=>`<path d="M${x} 104 V70"/>`).join("")}</g><g fill="#8b5a2b">${[10,22,300,310].map(x=>`<rect x="${x-3}" y="62" width="6" height="12" rx="3"/>`).join("")}</g>`;
+    case "bridge": return `<defs><linearGradient id="nb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f1a35"/><stop offset="1" stop-color="#3c4f80"/></linearGradient></defs><rect width="320" height="160" fill="url(#nb)"/><circle cx="270" cy="28" r="14" fill="#fff6c2" class="a pulse"/><g fill="#fff">${[[30,20],[90,40],[150,14],[210,36],[300,60]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.4" class="a blink"/>`).join("")}</g><path d="M0 130 L40 110 L80 130Z M240 130 L290 104 L320 130Z" fill="#1a2440"/><rect y="128" width="320" height="32" fill="#1c3550"/><path d="M0 100 Q160 120 320 100" fill="none" stroke="#c58b4a" stroke-width="2"/><path d="M0 98 H320" stroke="#a8673a" stroke-width="8"/><path d="M0 98 H320" stroke="${K}" stroke-width="1" stroke-dasharray="14 2"/>${[20,80,140,200,260,310].map(x=>`<path d="M${x} 98 v34" stroke="${K}" stroke-width="3"/>`).join("")}<path d="M60 80 L104 100" stroke="#fff6a8" stroke-width="30" opacity=".18"/>`;
+    case "lab": return `<rect width="320" height="160" fill="#f3d9a4"/><rect x="20" y="16" width="70" height="48" fill="#bfe6ff" stroke="${K}" stroke-width="2.5"/><path d="M55 16 V64 M20 40 H90" stroke="${K}" stroke-width="2"/><rect y="126" width="320" height="34" fill="#a8673a" stroke="${K}" stroke-width="2"/><path d="M0 134 H320" stroke="#8b5a2b" stroke-width="2"/>`;
+    case "kitchen": return `<rect width="320" height="160" fill="#ffe7c7"/><g fill="#fff" stroke="#e5c9a4" stroke-width="1">${Array.from({length:8},(_,i)=>`<rect x="${i*40}" y="40" width="40" height="40"/>`).join("")}</g><rect y="126" width="320" height="34" fill="#c4a27a" stroke="${K}" stroke-width="2"/><rect x="230" y="10" width="70" height="22" rx="4" fill="#a8673a" stroke="${K}" stroke-width="2"/>`;
+    case "scale": return `<rect width="320" height="160" fill="#e7dcff"/><path d="M0 0 L60 0 L40 160 L0 160Z" fill="#d9c9ff"/><path d="M320 0 L260 0 L280 160 L320 160Z" fill="#d9c9ff"/><rect y="134" width="320" height="26" fill="#c6b2f0" stroke="${K}" stroke-width="2"/><g fill="#ffd34d" stroke="${K}" stroke-width="1.5"><path d="M150 20 l4 8 l9 1 l-7 6 l2 9 l-8 -5 l-8 5 l2 -9 l-7 -6 l9 -1z"/></g>`;
+    case "doors": return `<rect width="320" height="160" fill="#6b5a7a"/><g fill="#5a4a68">${Array.from({length:8},(_,i)=>`<rect x="${i*40}" y="${i%2?0:20}" width="38" height="18"/>`).join("")}</g><rect y="132" width="320" height="28" fill="#4a3d56" stroke="${K}" stroke-width="2"/><g class="a blink"><circle cx="160" cy="26" r="6" fill="#ffd34d"/></g>`;
+    case "studio": return `<rect width="320" height="160" fill="#3c2a55"/><path d="M60 0 L20 140 L100 140Z M260 0 L220 140 L300 140Z" fill="#ffe48a" opacity=".15"/><g fill="#ffd34d">${[20,60,100,140,180,220,260,300].map(x=>`<circle cx="${x}" cy="10" r="4" class="a blink" style="animation-delay:${x/100}s"/>`).join("")}</g><rect y="134" width="320" height="26" fill="#2a1c3c" stroke="${K}" stroke-width="2"/>`;
+    case "track": return sky()+sun+clouds+hills+`<path d="M0 96 Q80 80 160 92 T320 88 V110 H0Z" fill="#6fbf4a"/><rect y="106" width="320" height="54" fill="#e07a4f" stroke="${K}" stroke-width="2"/><path d="M0 124 H320 M0 142 H320" stroke="#fff" stroke-width="2" stroke-dasharray="14 8"/>`;
+    case "party": return `<rect width="320" height="160" fill="#ffe1ec"/><path d="M0 12 Q40 34 80 12 T160 12 T240 12 T320 12" fill="none" stroke="${K}" stroke-width="1.5"/>${[20,60,100,140,180,220,260,300].map((x,i)=>`<path d="M${x-8} ${16+(i%2)*4} l8 14 l8 -14z" fill="${["#ff7a59","#ffd34d","#4cb5ae","#9b7bff"][i%4]}" stroke="${K}" stroke-width="1.5"/>`).join("")}<rect y="134" width="320" height="26" fill="#ffb3c8" stroke="${K}" stroke-width="2"/>`;
+    case "hotel": case "hospital": case "castle": return sky()+sun+clouds+hills+`<path d="M0 120 Q80 106 160 118 T320 112 V160 H0Z" fill="#6fbf4a" stroke="${K}" stroke-width="2"/><rect y="136" width="320" height="24" fill="#8bd36b"/>`;
+    case "city": return sky()+sun+`<g stroke="${K}" stroke-width="2">${[[0,50,40],[44,70,30],[80,40,36],[200,60,34],[240,30,40],[286,56,34]].map(([x,y,w])=>`<rect x="${x}" y="${y}" width="${w}" height="${120-y}" fill="#9aa5b8"/>`).join("")}</g><g fill="#ffe9a8">${[[8,60],[20,60],[8,76],[52,80],[90,50],[102,66],[208,70],[248,40],[262,56],[294,66]].map(([x,y])=>`<rect x="${x}" y="${y}" width="7" height="8"/>`).join("")}</g><rect y="118" width="320" height="42" fill="#555"/><path d="M0 140 H320" stroke="#ffd34d" stroke-width="3" stroke-dasharray="14 10"/>`;
+    case "space": return `<rect width="320" height="160" fill="#141030"/><circle cx="270" cy="40" r="24" fill="#9b7bff" stroke="${K}" stroke-width="2"/><ellipse cx="270" cy="40" rx="38" ry="8" fill="none" stroke="#ffd34d" stroke-width="3"/><g fill="#fff">${[[30,20],[120,40],[200,15],[60,130],[150,100],[300,120],[10,80],[230,90]].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${1+i%2}" class="a blink" style="animation-delay:${i*.3}s"/>`).join("")}</g><path d="M0 140 Q160 120 320 140 V160 H0Z" fill="#3a2f7a"/>`;
+    case "class": return `<rect width="320" height="160" fill="#d9f0e3"/><rect x="250" y="20" width="56" height="40" fill="#bfe6ff" stroke="${K}" stroke-width="2"/><rect y="138" width="320" height="22" fill="#c4a27a" stroke="${K}" stroke-width="2"/>`;
+    case "room": return `<rect width="320" height="160" fill="#ffe7c7"/><g stroke="#f0d3ad" stroke-width="2">${Array.from({length:16},(_,i)=>`<path d="M${i*20} 0 V134"/>`).join("")}</g><rect y="134" width="320" height="26" fill="#e5b98a" stroke="${K}" stroke-width="2"/>`;
+    case "temple": return `<rect width="320" height="160" fill="#4a2f5e"/><path d="M40 160 V40 L60 30 L80 40 V160 M240 160 V40 L260 30 L280 40 V160" fill="#6b4a7e" stroke="${K}" stroke-width="2"/><path d="M0 30 L160 0 L320 30Z" fill="#8a5a9e" stroke="${K}" stroke-width="2"/><circle cx="160" cy="60" r="40" fill="#ffd34d" opacity=".15"/><rect y="134" width="320" height="26" fill="#2a1838" stroke="${K}" stroke-width="2"/>`;
+    case "desert": return sky("#ffb27a","#ffe9c7")+`<circle cx="260" cy="40" r="20" fill="#ffd34d" class="a pulse" style="transform-origin:center"/><path d="M0 120 Q60 100 120 118 T240 112 T320 116 V160 H0Z" fill="#e9c46a" stroke="${K}" stroke-width="2"/><path d="M30 120 v-20 m0 8 h-6 v-8 m6 4 h6 v-10" stroke="#3d8a2a" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+    case "deck": return sky("#ffb27a","#ffe1b0")+`<circle cx="250" cy="60" r="22" fill="#ff7a29" opacity=".85"/><rect y="88" width="320" height="30" fill="#2f6fa8"/><g class="waves"><path d="M0 98 q10 -5 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" fill="none" stroke="#fff" stroke-width="2" opacity=".6"/></g><path d="M0 112 H320 V160 H0Z" fill="#a8673a" stroke="${K}" stroke-width="2"/>${[0,1,2,3,4,5,6,7].map(i=>`<path d="M${i*40} 112 V160" stroke="#7a4a24" stroke-width="2"/>`).join("")}<path d="M300 112 V20" stroke="#6b3e1e" stroke-width="6"/><path d="M302 24 Q270 50 302 80Z" fill="#f4ecdc" stroke="${K}" stroke-width="2"/><path d="M300 20 L280 14 L300 8" fill="#1d1d24"/><circle cx="290" cy="14" r="2" fill="#fff"/>`;
+    case "chessroom": return `<rect width="320" height="160" fill="#3a2f4a"/><g opacity=".5">${Array.from({length:10},(_,i)=>`<rect x="${i*32}" y="0" width="16" height="16" fill="#4a3d5e"/><rect x="${i*32+16}" y="16" width="16" height="16" fill="#4a3d5e"/>`).join("")}</g><path d="M0 120 L320 120 L320 160 L0 160Z" fill="#c9a24a"/>${Array.from({length:10},(_,i)=>`<path d="M${i*36-20} 160 L${i*36+16-20+20} 120 L${i*36+36-20+20} 120 L${i*36+18} 160Z" fill="${i%2?"#f4ecdc":"#6b4220"}" stroke="${K}" stroke-width="1"/>`).join("")}`;
+    case "nightroom": return `<rect width="320" height="160" fill="#1d1638"/><rect x="230" y="18" width="64" height="54" rx="4" fill="#0f1a35" stroke="${K}" stroke-width="3"/><path d="M262 18 V72 M230 45 H294" stroke="${K}" stroke-width="2"/><circle cx="276" cy="34" r="8" fill="#fff6c2"/><g fill="#fff">${[[240,28],[252,60],[284,58]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.2" class="a blink"/>`).join("")}</g><rect y="134" width="320" height="26" fill="#2a2050" stroke="${K}" stroke-width="2"/><path d="M0 0 L60 0 L40 134 L0 134Z" fill="#fff" opacity=".03"/>`;
+    case "felt": return `<defs><radialGradient id="fg"><stop offset="0" stop-color="#3a8a52"/><stop offset="1" stop-color="#1d4a2a"/></radialGradient></defs><rect width="320" height="160" fill="url(#fg)"/><rect x="6" y="6" width="308" height="148" rx="20" fill="none" stroke="#c9a24a" stroke-width="4"/>`;
+    case "casino": return `<rect width="320" height="160" fill="#2a0f1c"/><g fill="#ffd34d">${Array.from({length:16},(_,i)=>`<circle cx="${10+i*20}" cy="8" r="4" class="a blink" style="animation-delay:${i*.15}s"/>`).join("")}</g><path d="M0 138 H320 V160 H0Z" fill="#5a1f3a" stroke="${K}" stroke-width="2"/><text x="250" y="60" font-size="16" font-weight="800" fill="#ffd34d" font-family="Baloo 2,sans-serif" class="a blink">CASINO</text>`;
+    default: return `<rect width="320" height="160" fill="#2a1838"/><path d="M0 0 Q50 80 0 160Z M320 0 Q270 80 320 160Z" fill="#c0392b" stroke="${K}" stroke-width="2"/><path d="M0 0 H320 V16 Q160 30 0 16Z" fill="#a52a2a" stroke="${K}" stroke-width="2"/><ellipse cx="160" cy="150" rx="140" ry="14" fill="#ffd34d" opacity=".15"/><path d="M120 0 L80 150 L240 150 L200 0Z" fill="#fff" opacity=".06"/>`;
+  }
+}
+// Arka plan süsleri: ağaçlar, çalılar, uçan kuşlar, ışık hüzmeleri
+const U=(m,x,y,h,cls="")=>`<g class="a ${cls}"><use href="#m-${m}" x="${x-h/2}" y="${y-h}" width="${h}" height="${h}"/></g>`;
+const birds=`<g class="birds"><g class="bflap">${U("bird",0,40,14)}</g><g class="bflap" style="animation-delay:.3s">${U("bird",-24,30,10)}</g></g>`;
+// düşen yapraklar ve zeminde süzülen bulut gölgeleri
+const leaves=(x,y)=>[0,1,2].map(i=>`<g class="leaffall" style="animation-delay:${i*2.3}s"><path d="M${x+i*8} ${y} q4 -5 8 0 q-4 5 -8 0Z" fill="${["#e9a03a","#d6452a","#8bd36b"][i]}" stroke="#2b2135" stroke-width=".8"/></g>`).join("");
+const cshadow=`<g class="cshadow"><ellipse cx="60" cy="132" rx="70" ry="7" fill="#000" opacity=".09"/></g>`;
+function deco(type){
+  switch(type){
+    case "river": return `<g class="fishjump">${U("fish",190,136,16)}</g><g class="splash"><ellipse cx="190" cy="134" rx="8" ry="2" fill="none" stroke="#fff" stroke-width="1.2"/></g><path class="foam" d="M110 112 q4 -2 8 0 t8 0 t8 0 M214 112 q-4 -2 -8 0 t-8 0 t-8 0" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/>`+leaves(300,70)+cshadow+U("butterfly",60,70,12,"flutter")+U("butterfly",270,64,10,"flutter")+grass(0,96,104)+grass(244,320,104)+flowers([[30,106,"#ff5f7e"],[70,107,"#fff"],[262,106,"#ffd34d"],[300,107,"#9b7bff"]])+U("pine",14,104,46)+U("tree",300,104,50)+U("bush",270,110,28)+birds+`<g class="sparkle">${[[140,118],[180,132],[200,114]].map(([x,y])=>`<path d="M${x} ${y} l3 -3 l3 3 l-3 3z" fill="#fff"/>`).join("")}</g>`;
+    case "track": case "castle": return leaves(20,72)+cshadow+U("butterfly",120,76,12,"flutter")+grass(0,320,110)+flowers([[60,110,"#ff5f7e"],[250,111,"#ffd34d"]])+U("tree",20,112,46)+U("bush",300,112,26)+birds;
+    case "hotel": case "hospital": return cshadow+grass(0,320,138)+flowers([[40,138,"#ff5f7e"],[200,139,"#ffd34d"],[280,138,"#fff"]])+U("pine",300,128,40)+U("bush",16,134,26)+birds;
+    case "pond": return birds+`<g class="sparkle">${[[60,110],[180,116],[260,108]].map(([x,y])=>`<path d="M${x} ${y} l3 -3 l3 3 l-3 3z" fill="#fff"/>`).join("")}</g>`;
+    case "sea": return birds;
+    case "city": return birds;
+    case "desert": return `<g class="heat"><path d="M0 110 q20 -4 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0" fill="none" stroke="#fff" stroke-width="1" opacity=".4"/></g>`;
+    default: return "";
+  }
+}
+function scene(p,i,big){
+  let s=`<svg class="scene" viewBox="0 0 320 160" role="img" aria-label="${p.t||""} sahnesi">${bg(p.bg)}${deco(p.bg)}`;
+  p.act.forEach(([m,x,y,h,an,flip,d],k)=>{
+    // yürüyen insanlar için bacakları adım atan "_w" sürümü
+    const mm=an==="walk"&&window.MODELS&&MODELS.includes(m+"_w")?m+"_w":m;
+    const u=`<use href="#m-${mm}" x="${x-h/2}" y="${y-h}" width="${h}" height="${h}" filter="url(#ds)"/>`;
+    // zemin gölgesi + boşta duranlar için nefes alma
+    if(y>=120)s+=`<ellipse cx="${x}" cy="${y-1}" rx="${h*.32}" ry="${h*.05}" fill="#000" opacity=".22"/>`;
+    const body=`<g class="sway" style="animation-delay:${(k*.37).toFixed(2)}s">${flip?`<g transform="translate(${2*x} 0) scale(-1 1)">${u}</g>`:u}</g>`;
+    const wet=["river","pond"].includes(p.bg)&&y>=126&&y<=142&&x>100&&x<230;
+    if(wet)s+=`<g class="a ${an&&an!=="none"?an:""}" style="animation-delay:${(d??k*.23).toFixed(2)}s" opacity=".22"><g transform="translate(0 ${2*y-4}) scale(1 -1)">${body}</g></g>`;
+    s+=`<g class="a ${an&&an!=="none"?an:"breathe"}" style="animation-delay:${(d??k*.23).toFixed(2)}s">${body}</g>`;
+  });
+  if(["river","track","hotel","hospital","castle","pond","sea","desert","deck"].includes(p.bg))s+=`<g class="godrays" opacity=".18">${[0,1,2,3].map(k=>`<path d="M40 28 L${120+k*60} 160 L${150+k*60} 160Z" fill="#fff6c2"/>`).join("")}</g><g class="motes">${Array.from({length:10},(_,k)=>`<circle cx="${80+k*22}" cy="${60+(k*37)%70}" r="${.8+(k%3)*.4}" fill="#fff6c2" style="animation-delay:${k*.6}s"/>`).join("")}</g><rect y="86" width="320" height="30" fill="url(#haze)" pointer-events="none"/><defs><linearGradient id="haze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>`;
+  if(["river","pond","sea","deck"].includes(p.bg))s+=`<g class="shimmer"><rect x="-80" y="104" width="60" height="56" fill="url(#shim)" opacity=".5"/></g><defs><linearGradient id="shim" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>`;
+  s+=`<rect width="320" height="160" fill="url(#grainPat)" opacity=".22" pointer-events="none" style="mix-blend-mode:overlay"/>`;
+  s+=`<rect width="320" height="160" fill="url(#vig)" pointer-events="none"/><defs><radialGradient id="vig" cx=".5" cy=".45" r=".75"><stop offset=".65" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></radialGradient></defs>`;
+  if(p.txt)s+=`<text x="160" y="44" fill="#fff" font-size="18" font-weight="800" text-anchor="middle" font-family="Baloo 2,sans-serif" stroke="${K}" stroke-width=".8">${p.txt}</text>`;
+  // Bu SVG'de tanımlanan kimlikleri benzersizleştir: gizli bir sekmedeki aynı kimlik "kazanınca" degrade çizilmiyordu
+  const uid="u"+(scene.n=(scene.n||0)+1);
+  const ids=[...new Set([...s.matchAll(/id="([^"]+)"/g)].map(m=>m[1]))];
+  ids.forEach(id=>{s=s.split(`id="${id}"`).join(`id="${id}${uid}"`).split(`url(#${id})`).join(`url(#${id}${uid})`)});
+  if(i!=null&&!big)s+=`<circle cx="22" cy="140" r="14" fill="#fff" stroke="${K}" stroke-width="2.5"/><text x="22" y="146" font-size="16" font-weight="800" text-anchor="middle" fill="${K}" font-family="Baloo 2,sans-serif">${i+1}</text>`;
+  return s+`</svg>`;
+}
+
+/* ================= DURUM / PUAN ================= */
+let solved={};
+try{solved=JSON.parse(localStorage.getItem("zu2-solved")||"{}")}catch(e){}
+const save=()=>{try{localStorage.setItem("zu2-solved",JSON.stringify(solved))}catch(e){}};
+const TOTAL=PUZ.length+PAR.length+QLESSONS.length+LOGIC.length+CASES.length;
+function updScore(){document.getElementById("score").textContent=`Puan: ${Object.keys(solved).length} / ${TOTAL}`;
+  document.querySelectorAll("[data-id]").forEach(c=>c.querySelector(".done").textContent=solved[c.dataset.id]?"✅":"")}
+function markSolved(id){if(!solved[id]){solved[id]=1;save();updScore()}confetti()}
+function confetti(){const E=["🎉","⭐","✨","🎊","💡","🧠"];for(let i=0;i<24;i++){const s=document.createElement("span");s.className="conf";s.textContent=E[R(E.length)];s.style.left=R(100)+"vw";s.style.animationDelay=Math.random()*.6+"s";document.body.appendChild(s);setTimeout(()=>s.remove(),3000)}}
+
+/* ================= MODAL: GİRİŞ + OYUN ================= */
+const ov=document.getElementById("ov"),mm=document.getElementById("mm"),intro=document.getElementById("intro"),play=document.getElementById("play");let cur=null,typing=0;
+function openGame(p,id,isPar){
+  cur=id;play.hidden=true;intro.hidden=false;document.getElementById("mg").innerHTML="";
+  const tk=++typing;
+  intro.innerHTML=`<span class="chapter">${isPar?"🌀 Paradoks":"🛶 Zeka sorusu"} · ${p.lv[1]}</span><h2>${p.t}</h2>${scene(p,null,true)}<div class="narr"></div><div class="introbtns"><button class="btn hot go">▶ Başla</button><button class="btn alt sk">⏭ Atla</button></div>`;
+  const narr=intro.querySelector(".narr");let full=false;
+  const showAll=()=>{full=true;narr.innerHTML=p.in.map(l=>`<p>${l}</p>`).join("")};
+  (async()=>{await sleep(500);for(const line of p.in){if(tk!==typing||full)return;const el=document.createElement("p");el.className="cur";narr.appendChild(el);
+    for(let i=0;i<=line.length;i++){if(tk!==typing||full)return;el.textContent=line.slice(0,i);await sleep(22)}el.className="";await sleep(450)}})();
+  intro.querySelector(".sk").onclick=()=>{if(!full)showAll();else start()};
+  const start=()=>{typing++;intro.hidden=true;play.hidden=false;runGame(p,id,isPar);ov.scrollTop=0};
+  intro.querySelector(".go").onclick=start;
+  ov.hidden=false;ov.scrollTop=0;document.body.style.overflow="hidden";
+}
+function runGame(p,id,isPar){
+  document.getElementById("mt").textContent=p.t;document.getElementById("mq").textContent=p.q;mm.className="msg";mm.textContent="";
+  const api={say:(t,k)=>{mm.textContent=t;mm.className="msg"+(t?" "+(k||"info"):"")},
+    win:t=>{api.say("🎉 "+t,"ok");markSolved(id)},fail:t=>api.say(t,"bad")};
+  // Her oyun kendi kapsayıcısında çalışır; pencere kapanınca kapsayıcı silinir ve bekleyen zamanlayıcılar durur
+  const g=document.getElementById("mg");g.innerHTML="";const host=document.createElement("div");g.appendChild(host);p.g(host,api);
+  const mc=document.getElementById("mc");mc.innerHTML="";
+  if(isPar){mc.innerHTML=`<p class="step">🧩 Son soru: ${p.q}</p><div class="opts"></div><div class="msg pfb"></div>`;const box=mc.querySelector(".opts"),fb=mc.querySelector(".pfb");
+    p.o.forEach((o,k)=>{const b=document.createElement("button");b.textContent=o;b.onclick=()=>{if(k===p.c){b.className="right";box.querySelectorAll("button").forEach(x=>x.disabled=true);fb.className="msg ok";fb.textContent="🎉 Doğru! "+p.a+" — ayrıntılar ve tarihçe için Çözümü gör.";markSolved(id)}else{b.className="wrong";b.disabled=true;fb.className="msg bad";fb.textContent="🤔 Olmadı. Deneyi tekrar oynat ve düşün!"}};box.appendChild(b)})}
+}
+function closeGame(){typing++;ov.hidden=true;document.body.style.overflow="";document.getElementById("mg").innerHTML="";intro.innerHTML=""}
+document.getElementById("mx").onclick=closeGame;document.getElementById("mclose").onclick=closeGame;
+ov.onclick=e=>{if(e.target===ov)closeGame()};document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!ov.hidden)closeGame()});
+document.getElementById("msol").onclick=()=>{const id=cur;closeGame();goSol(id)};
+
+/* ================= KARTLAR VE ÇÖZÜMLER ================= */
+function renderCards(list,key,grid,isPar){
+  const g=document.getElementById(grid);
+  list.forEach((p,i)=>{
+    const id=key+i,c=document.createElement("article");c.className="card";c.dataset.id=id;
+    c.innerHTML=scene(p,i)+`<div class="body"><div class="meta"><span><span class="lvl ${p.lv[0]}">${p.lv[1]}</span> ${p.nw?'<span class="new">YENİ</span>':""}</span><span><span class="done"></span> ${i+1}/${list.length}</span></div>
+      <h3>${p.t}</h3><p class="q">${p.q}</p><div class="cbtns"><button class="btn hot pl">${isPar?"🔬 Keşfet":"▶ Oyna"}</button><button class="btn alt sl">📖 Çözüm</button></div></div>`;
+    c.querySelector(".pl").onclick=()=>openGame(p,id,isPar);c.querySelector(".scene").onclick=()=>openGame(p,id,isPar);
+    c.querySelector(".sl").onclick=()=>goSol(id);g.appendChild(c);
+  });
+}
+function renderSols(list,key,box){
+  const b=document.getElementById(box);
+  list.forEach((p,i)=>{const d=document.createElement("details");d.className="sol";d.id="s-"+key+i;
+    d.innerHTML=`<summary>${i+1}. ${p.t} <span class="lvl ${p.lv[0]}">${p.lv[1]}</span>${p.nw?'<span class="new">YENİ</span>':""}</summary>
+      <div class="in"><div class="solhead"><div>${scene(p,null,true)}</div><div><p><b>Soru:</b> ${p.q}</p><p>Cevap: <span class="ans">${p.a}</span></p></div></div>
+      ${p.k?`<div class="box simple"><h4>🗣️ Basitçe</h4><p>${p.k}</p></div>`:""}
+      <div class="box"><h4>🪜 Adım adım çözüm</h4><ol>${p.s.map(x=>`<li>${x}</li>`).join("")}</ol></div>
+      <div class="box why"><h4>🧠 Neden işe yarıyor?</h4><p>${p.w}</p></div>
+      <div class="box hist"><h4>📜 Tarihçe</h4><p>${p.h}</p></div>
+      <div class="box note"><h4>💡 Biliyor muydun?</h4><p>${p.n}</p></div></div>`;b.appendChild(d)});
+}
+function renderTop(){
+  const box=document.getElementById("topList");
+  TOP5.forEach((p,i)=>{const d=document.createElement("details");d.className="sol top";
+    d.innerHTML=`<summary><span class="rank">${i+1}</span> ${p.t} <span class="lvl l4">${p.yr}</span><small class="who">${p.who}</small></summary>
+      <div class="in"><div class="sp"></div>
+      <div class="box simple"><h4>🌍 Genel bilgi</h4><p>${p.gen}</p></div>
+      <div class="box why"><h4>🤯 Neden paradoks?</h4><ul>${p.why.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+      <div class="box note"><h4>🧩 Çözüldü mü?</h4><p>${p.sol}</p></div>
+      <div class="box hist"><h4>📜 Tarihçe ve kişiler</h4><p>${p.story}</p></div></div>`;
+    // Hikâye yalnızca açılınca başlar; kapanınca öğe silinip durur
+    d.addEventListener("toggle",()=>{const sp=d.querySelector(".sp");if(d.open)storyPlayer(sp,p.frames,f=>scene(f,null,true));else sp.innerHTML=""});
+    box.appendChild(d)});
+}
+/* ================= KUANTUM OKULU ================= */
+let qCur=0;
+function renderQSteps(){
+  document.getElementById("qsteps").innerHTML=QLESSONS.map((l,i)=>`<button class="qstep ${i===qCur?"on":""} ${solved["q"+i]?"ok":""}" data-i="${i}"><span>${solved["q"+i]?"✓":i+1}</span><em>${l.ic}</em><small>${l.t.split(":")[0]}</small></button>`).join("");
+  document.querySelectorAll(".qstep").forEach(b=>b.onclick=()=>openLesson(+b.dataset.i));
+}
+function openLesson(i){
+  qCur=i;renderQSteps();const l=QLESSONS[i],box=document.getElementById("qlesson"),id="q"+i;
+  box.innerHTML=`<article class="qles"><span class="chapter">Ders ${i+1} / ${QLESSONS.length}</span><h2>${l.ic} ${l.t}</h2>
+    <div class="qstory">📖 ${l.story}</div>
+    ${l.fun?`<div class="mascot">${MASCOT}<div class="mbub"><b>Kuantik diyor ki:</b> ${l.fun}</div></div>`:""}
+    <div class="qsim"></div>
+    <div class="box simple"><h4>🔍 Ne oluyor?</h4><p>${l.what}</p></div>
+    ${l.analog?`<div class="box analog"><h4>🍕 Günlük hayattan benzetme</h4><p>${l.analog}</p></div>`:""}
+    <div class="box qf"><h4>🧮 Formüller</h4>${l.f.map(([f,d])=>`<div class="frm"><code>${f}</code><p>${d}</p></div>`).join("")}</div>
+    <div class="box why"><h4>🛠️ Ne işe yarar?</h4><p>${l.use}</p></div>
+    <div class="box hist"><h4>📜 Tarihçe</h4><p>${l.hist}</p></div>
+    <div class="box note"><h4>🧩 Mini sınav</h4><p><b>${l.q}</b></p><div class="opts"></div><div class="msg qfb"></div></div>
+    <div class="ctrl qnav"><button class="btn alt pv" ${i?"":"disabled"}>⬅ Önceki ders</button><button class="btn hot nx" ${i<QLESSONS.length-1?"":"disabled"}>Sonraki ders ➡</button></div></article>`;
+  l.sim(box.querySelector(".qsim"),{});
+  const op=box.querySelector(".opts"),fb=box.querySelector(".qfb");
+  l.o.forEach((o,k)=>{const b=document.createElement("button");b.textContent=o;b.onclick=()=>{if(k===l.c){b.className="right";op.querySelectorAll("button").forEach(x=>x.disabled=true);fb.className="msg ok";fb.textContent="🎉 Doğru! "+l.ex;markSolved(id);renderQSteps()}else{b.className="wrong";b.disabled=true;fb.className="msg bad";fb.textContent="🤔 Olmadı. Simülasyonu tekrar dene ve düşün!"}};op.appendChild(b)});
+  box.querySelector(".pv").onclick=()=>{openLesson(i-1);box.scrollIntoView({behavior:"smooth"})};
+  box.querySelector(".nx").onclick=()=>{openLesson(i+1);box.scrollIntoView({behavior:"smooth"})};
+}
+// Başlık animasyonu: elektron bulutlu atom
+function qHero(){const cv=document.getElementById("qhero");qCanvas(cv.parentNode,170,(c,t,W,H)=>{labBg(c,W,H);const cx=W*.82,cy=H/2;
+  for(let i=0;i<220;i++){const a=i*2.4+t*.3,r=(Math.sin(i*12.9898)*43758.5453%1+1)%1*70;glow(c,cx+Math.cos(a)*r*1.3,cy+Math.sin(a*1.7)*r*.7,3,"rgba(95,208,200,.35)")}
+  [0,1.05,2.1].forEach(k=>{c.save();c.translate(cx,cy);c.rotate(k);c.strokeStyle="rgba(155,123,255,.55)";c.lineWidth=1.5;c.beginPath();c.ellipse(0,0,72,24,0,0,7);c.stroke();const a=t*2+k*2;glow(c,Math.cos(a)*72,Math.sin(a)*24,10,"rgba(90,200,255,.95)");c.restore()});
+  glow(c,cx,cy,26,"rgba(255,140,90,.9)")});cv.remove()}
+function show(tab){document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===tab));["puz","par","top","lg","kk","qm","sol"].forEach(t=>document.getElementById(t).hidden=t!==tab);
+  if(tab==="qm"&&!document.querySelector(".qles")){openLesson(qCur)}}
+function goSol(id){show("sol");const d=document.getElementById("s-"+id);d.open=true;d.scrollIntoView({behavior:"smooth",block:"start"});d.classList.remove("flash");void d.offsetWidth;d.classList.add("flash")}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{show(b.dataset.tab);window.scrollTo({top:0})});
+
+// Kartlarda fareyi izleyen yumuşak 3B eğim ve sahnede paralaks kayması
+document.addEventListener("pointermove",e=>{const c=e.target.closest&&e.target.closest(".card");document.querySelectorAll(".card.tilt").forEach(x=>{if(x!==c){x.classList.remove("tilt");x.style.transform="";const s=x.querySelector(".scene");if(s)s.style.transform=""}});
+  if(!c||e.pointerType==="touch")return;const r=c.getBoundingClientRect(),px=(e.clientX-r.left)/r.width-.5,py=(e.clientY-r.top)/r.height-.5;c.classList.add("tilt");
+  c.style.transform=`perspective(700px) rotateY(${px*8}deg) rotateX(${-py*8}deg) translateY(-3px)`;const s=c.querySelector(".scene");if(s)s.style.transform=`scale(1.04) translate(${-px*6}px,${-py*4}px)`});
+renderCards(PUZ,"p","gridPuz",false);renderCards(PAR,"x","gridPar",true);
+renderSols(PUZ,"p","solPuz");renderSols(PAR,"x","solPar");renderTop();renderLogic();renderCases();renderIntro("par","introPar");renderIntro("lg","introLg");renderIntro("qm","introQm");renderQSteps();qHero();updScore();
+</script>
+</body>
+</html>
